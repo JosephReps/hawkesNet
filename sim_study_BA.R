@@ -35,6 +35,9 @@ as_num <- function(x, default) {
 TIME   <- as_num(Sys.getenv("TIME", ""), 40)
 T0     <- as_num(Sys.getenv("T0", ""), 0)
 N_SIMS <- as_int(Sys.getenv("N_SIMS", ""), 2)
+# Just added these
+# REP_START <- as_int(Sys.getenv("REP_START", ""), 0)
+# REP_END <- as_int(Sys.getenv("REP_END", ""), N_SIMS)
 SEED   <- as_int(Sys.getenv("SEED", ""), 1267)
 DELTA  <- as_num(Sys.getenv("DELTA", ""), 0.1)
 

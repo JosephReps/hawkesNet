@@ -127,15 +127,17 @@ validate_edges_cs <- function(edges_k, new_nodes, old_nodes) {
       is.character(model_cache$rhs) && identical(model_cache$rhs, formula_rhs)) {
     mdl <- model_cache$model
   } else {
-    # bind a symbol into the formula env like the old package expects
-    f_env <- new.env(parent = emptyenv())
-    f_env$new_net <- net
-    f <- stats::as.formula(paste0("new_net ~ ", formula_rhs), env = f_env)
+    # Create a dedicated env that can see base + attached pkgs
+    e <- new.env(parent = globalenv())
+    e$new_net <- net
+
+    f <- stats::as.formula(paste("new_net ~", formula_rhs), env = e)
     mdl <- ernm::createCppModel(f)
 
     if (!is.null(model_cache)) {
       model_cache$rhs <- formula_rhs
       model_cache$model <- mdl
+      model_cache$env <- e   # keep env alive for safety
     }
   }
 

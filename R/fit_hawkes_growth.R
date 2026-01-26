@@ -52,6 +52,40 @@ fit_hg <- function(
     if (transform[[nm]] == "none") transform[[nm]] <- "log"
   }
 
+  # --- expand any vector-valued parameters (e.g. CS_params) into scalar entries ---
+  vec_map <- list()
+  nms0 <- names(params_init)
+
+  for (nm in nms0) {
+    val <- params_init[[nm]]
+    if (is.atomic(val) && length(val) > 1L) {
+      new_nms <- paste0(nm, "_", seq_along(val))
+      vec_map[[nm]] <- new_nms
+
+      # expand params_init into scalar entries
+      params_init[new_nms] <- as.list(as.numeric(val))
+      params_init[[nm]] <- NULL
+
+      # expand transform: replicate transform[[nm]] if it exists, else "none"
+      tf_nm <- transform[[nm]]
+      if (is.null(tf_nm)) tf_nm <- "none"
+      transform[new_nms] <- rep(tf_nm, length(new_nms))
+
+      # delete old transform entry safely (vector)
+      transform <- transform[setdiff(names(transform), nm)]
+
+      # if user fixed the vector param by base name, expand to the new names later
+      if (!is.null(fixed_params) && nm %in% fixed_params) {
+        fixed_params <- setdiff(fixed_params, nm)
+        fixed_params <- c(fixed_params, new_nms)
+      }
+    }
+  }
+
+  # ensure transform entries exist for ALL (expanded) params
+  missing_tf <- setdiff(names(params_init), names(transform))
+  if (length(missing_tf) > 0) transform[missing_tf] <- "none"
+
   # --- split free vs fixed ---
   fixed_params <- fixed_params %||% character(0)
   fixed_params <- intersect(fixed_params, names(params_init))
@@ -98,6 +132,16 @@ fit_hg <- function(
       }
     }
     for (nm in fixed_params) p[[nm]] <- params_init[[nm]]
+
+    # collapse any expanded vector params back into vectors (e.g. CS_params)
+    if (length(vec_map)) {
+      for (base_nm in names(vec_map)) {
+        new_nms <- vec_map[[base_nm]]
+        p[[base_nm]] <- unname(as.numeric(p[new_nms]))
+        p[new_nms] <- NULL
+      }
+    }
+
     p
   }
 

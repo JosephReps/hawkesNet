@@ -125,9 +125,7 @@ loglik <- function(
   # CS: build a model cache once (ernm model object can be reused)
   cs_model_cache <- NULL
   if (mark_type == "cs") {
-    cs_model_cache <- new.env(parent = emptyenv())
-    cs_model_cache$rhs <- NULL
-    cs_model_cache$model <- NULL
+    cs_model_cache <- list(rhs = NULL, model = NULL, env = NULL)
   }
 
   # Iterate over events
@@ -191,5 +189,6 @@ loglik <- function(
     dt = T_end - t_prev, mu = mu, K = K, beta = beta, S_post_prev = S_post_prev
   )
 
+  print("Lik eval")
   ll - compensator
 }

@@ -32,16 +32,57 @@ as_num <- function(x, default) {
   })
 }
 
+
+as_num_vec <- function(x, default = numeric(0)) {
+  if (!nzchar(x)) return(default)
+  # allow commas and/or whitespace
+  parts <- unlist(strsplit(x, "[,[:space:]]+"))
+  parts <- parts[nzchar(parts)]
+  suppressWarnings({
+    v <- as.numeric(parts)
+  })
+  if (anyNA(v)) stop("Could not parse numeric vector from: ", x)
+  v
+}
+
 # ---- Settings (override via env vars) ----
 TIME   <- as_num(Sys.getenv("TIME", ""), 20)
 T0     <- as_num(Sys.getenv("T0", ""), 0)
-N_SIMS <- as_int(Sys.getenv("N_SIMS", ""), 2)
+N_SIMS <- as_int(Sys.getenv("N_SIMS", ""), 4)
 SEED   <- as_int(Sys.getenv("SEED", ""), 1267)
 
 # ---- CS kernel controls (override via env vars) ----
-FORMULA_RHS   <- Sys.getenv("FORMULA_RHS", "edges")
-TRUNCATION    <- as_int(Sys.getenv("TRUNCATION", ""), 50)
+FORMULA_RHS   <- Sys.getenv("FORMULA_RHS", "edges  + triangles() + star(c(2,3))")
+TRUNCATION    <- as_int(Sys.getenv("TRUNCATION", ""), 500)
 MAX_NODE_TIME <- as_num(Sys.getenv("MAX_NODE_TIME", ""), 10000)
+
+# CS params can be passed as a vector string, e.g.
+#   TRUE_CS_PARAMS="-6,0.5,0.3,-0.1"   (commas or spaces both OK)
+# Back-compat: if TRUE_CS_PARAMS/INIT_CS_PARAMS not set, fall back to TRUE_CS_1/INIT_CS_1.
+CS_true <- if (nzchar(Sys.getenv("TRUE_CS_PARAMS", ""))) {
+  as_num_vec(Sys.getenv("TRUE_CS_PARAMS", ""), default = numeric(0))
+} else {
+  c(as_num(Sys.getenv("TRUE_CS_1", ""), 0.25))
+}
+CS_true <- c(-6,0.5,0.3,-0.1)
+
+CS_init <- if (nzchar(Sys.getenv("INIT_CS_PARAMS", ""))) {
+  as_num_vec(Sys.getenv("INIT_CS_PARAMS", ""), default = numeric(0))
+} else {
+  c(as_num(Sys.getenv("INIT_CS_1", ""), 0.10))
+}
+CS_init <- c(-10,0,0,0)
+
+if (length(CS_true) != length(CS_init)) {
+  stop(
+    "CS_params length mismatch: TRUE has length ", length(CS_true),
+    " but INIT has length ", length(CS_init)
+  )
+}
+if (length(CS_true) != length(CS_init)) {
+  stop("CS_params length mismatch: TRUE has length ", length(CS_true),
+       " but INIT has length ", length(CS_init))
+}
 
 # True parameters (CS adds node_lambda + CS_params)
 params_true <- list(
@@ -50,7 +91,7 @@ params_true <- list(
   beta = as_num(Sys.getenv("TRUE_BETA", ""), 2),
   beta_edges = as_num(Sys.getenv("TRUE_BETA_EDGES", ""), 0.5),
   node_lambda = as_num(Sys.getenv("TRUE_NODE_LAMBDA", ""), 2.0),
-  CS_params = c(as_num(Sys.getenv("TRUE_CS_1", ""), 0.25))
+  CS_params = CS_true
 )
 
 # Initial values for optimizer
@@ -60,8 +101,13 @@ params_init <- list(
   beta = as_num(Sys.getenv("INIT_BETA", ""), 1),
   beta_edges = as_num(Sys.getenv("INIT_BETA_EDGES", ""), 1),
   node_lambda = as_num(Sys.getenv("INIT_NODE_LAMBDA", ""), 1.0),
-  CS_params = c(as_num(Sys.getenv("INIT_CS_1", ""), 0.10))
+  CS_params = CS_init
 )
+
+# mu,   K,     beta,  beta_edges, node_lambda,  CS_params
+# log,  log,   log,   log,        log,          none...
+TRANSFORM <- c(rep("log", 5), "none")
+names(TRANSFORM) <- names(params_true)
 
 # Output directory + run id
 out_dir <- Sys.getenv("OUT_DIR", "outputs")
@@ -135,6 +181,7 @@ one_rep <- function(rep_id) {
       control = list(maxit = as_int(Sys.getenv("MAXIT", ""), 500)),
       T0 = T0,
       T_end = TIME,
+      transform = TRANSFORM,
       mark_logpmf = log_pmf_cs,
       mark_type = "cs",
       formula_rhs = FORMULA_RHS,
@@ -294,7 +341,11 @@ if (length(bad_res)) {
 # Convert fits to data.frame (base R)
 est_df <- if (length(ok_res)) {
   do.call(rbind, lapply(ok_res, function(x) {
-    data.frame(
+
+    cs <- unlist(x$par$CS_params, use.names = FALSE)
+    cs_cols <- setNames(as.list(cs), paste0("CS_params_", seq_along(cs)))
+
+    rest_of_cols <- data.frame(
       rep = x$rep,
       convergence = x$convergence,
       loglik = x$loglik,
@@ -306,9 +357,10 @@ est_df <- if (length(ok_res)) {
       beta = x$par$beta,
       beta_edges = x$par$beta_edges,
       node_lambda = x$par$node_lambda,
-      CS_params_1 = x$par$CS_params[[1]],
       stringsAsFactors = FALSE
     )
+
+    data.frame(rest_of_cols, cs_cols, check.names = FALSE, stringsAsFactors = FALSE)
   }))
 } else {
   data.frame()
