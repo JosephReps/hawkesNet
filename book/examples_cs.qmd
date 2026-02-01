@@ -1,0 +1,99 @@
+{{< include _setup.qmd >}}
+
+# CS Examples
+
+Simulate CS data.
+
+```{r}
+set.seed(1)
+
+time <- 5
+params_cs_true <- list(
+  mu = 5,
+  K = 0.5,
+  beta = 2,
+  beta_edges = 0.5,
+  node_lambda = 4,
+  # CS_edges = -2.5,
+  # CS_triangles = 0.001,
+  CS_star.2 = -1,
+  CS_star.3 = -3
+)
+
+sim <- sim_hawkesNet(
+  params = params_cs_true,
+  T_end = time,
+  mark_type = "cs",
+  # formula_rhs = "edges + triangles() + star(c(2,3))",
+  formula_rhs = "star(c(2,3))"
+)
+```
+
+:::callout-note
+Need to discuss the `triangles()` parameter. I think the current calculation of
+change statistics for triangles is incorrect.
+:::
+
+```{r}
+plot(sim$net)
+```
+
+```{r}
+print(paste("Number of simulated nodes:", nrow(sim$ev$nodes)))
+paste("Number of simulated edges:", nrow(sim$ev$edges))
+paste("Number of simulated events:", sim$events$n)
+```
+
+Fit CS data. 
+
+:::callout-tip
+Make sure to specify the transformation setting for the CS parameters. 
+
+Ideally will default to correct value, but want to discuss how we are implementing
+the arguments, because lowk I like the old way of passing `CS_params` better.
+:::
+
+```{r}
+params_cs_init <- list(
+  mu = 3,
+  K = 1,
+  beta = 1,
+  beta_edges = 1,
+  node_lambda = 5,
+  # CS_edges = -2.5,
+  # CS_triangles = 0.001,
+  CS_star.2 = 0,
+  CS_star.3 = 0
+)
+
+fit <- fit_hawkesNet(
+      ev = sim$ev,
+      params_init = params_cs_init,
+      mark_type = "cs",
+      transform = list(CS_star.2 = "none", CS_star.3 = "none"),
+      formula_rhs = "star(c(2,3))"
+    )
+```
+
+Parameter values on the fitted scale:
+
+```{r}
+unlist(fit$par)
+```
+
+:::callout-note
+You might notice the estimates for `beta` and `K` are not great. I tried 
+increasing `time` which didn't help (actually made it worse?).
+
+Will definitely be doing some sensitivity testing / experimentation once I've
+implemented Duncan's supercharged model fitting.
+:::
+
+Parameter values on the transformed scale:
+
+```{r}
+fit$fit$par
+```
+
+
+

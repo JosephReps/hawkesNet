@@ -1,0 +1,17 @@
+{
+  "hash": "9dae6c60f2461b62e87127093a5c02a2",
+  "result": {
+    "engine": "knitr",
+    "markdown": "\n\n\n# Simulation\n\nSimulation is relatively straightforward for the core kernels (BA, BA_BIP, CS).\n\nThe algorithm used is the same, except the upper bound for thinning is \nrecalculated after each event, rather than at the very beginning, which makes it\nslightly more efficient, and means you don't have to worry about setting a valid\n`mu_multiplier` value.\n\nExample:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(1)\n\nparams_ba <- list(\n  mu = 2,\n  K = 0.5,\n  beta = 0.8,\n  beta_edges = 0.5\n)\n\ntime <- 5\n\nsim <- sim_hawkesNet(\n  params = params_ba,\n  T_end = time,\n  return_ev = TRUE,\n  debug = FALSE,\n  mark_type = \"ba\"\n)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Simulation took 0.14 seconds\"\n```\n\n\n:::\n\n```{.r .cell-code}\nnames(sim)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"events\"       \"accept_probs\" \"ev\"           \"net\"         \n```\n\n\n:::\n:::\n\n\nLooking at the output.\n\n`events` contains the times and number of total events simulated:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nsim$events\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n$n\n[1] 22\n\n$t\n [1] 0.3775909 0.4504443 0.6357547 1.2696058 1.4247319 1.5209317 1.8195977\n [8] 2.4765490 2.6199033 2.7111106 2.7712502 3.0028158 3.2289452 3.4861193\n[15] 3.9594114 4.1439052 4.3469041 4.3969257 4.5448436 4.5943761 4.7734668\n[22] 4.9298905\n```\n\n\n:::\n:::\n\n\n`accept_probs` contains the acceptance probabilities of each event:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nsim$accept_probs\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n [1] 1.0000000 1.2358458 1.1481242 0.9886842 1.1238954 1.1197264 1.0193665\n [8] 0.9005026 1.0960620 1.1000923 1.0989982 1.0063711 1.0076248 0.9928947\n[15] 0.9097591 1.0421951 1.0268910 1.0935040 1.0333602 1.0784932 1.0029862\n[22] 1.0138147\n```\n\n\n:::\n:::\n\n\n`net` is the final network created from the events:\n\n\n::: {.cell figure.caption='Realisation of a BA simulation'}\n\n```{.r .cell-code}\nplot(sim$net)\n```\n\n::: {.cell-output-display}\n![](simulation_files/figure-html/unnamed-chunk-5-1.png){width=672}\n:::\n:::\n\n\n:::callout-tip\nNotice that all the vertex attributes are preserved. Also supports edge \nattributes if custom kernels are written which utilize these later i.e. weighted\nedges, toggleable edges etc.\n:::\n\n`ev` which is the `hg_events` object which can be plugged directly into `fit_hawkesNet()`.\n\n\n::: {.cell}\n\n```{.r .cell-code}\nstr(sim$ev)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nList of 3\n $ times:'data.frame':\t22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ t       : num [1:22] 0.378 0.45 0.636 1.27 1.425 ...\n $ nodes:'data.frame':\t22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ id      : chr [1:22] \"1\" \"2\" \"3\" \"4\" ...\n $ edges:'data.frame':\t21 obs. of  3 variables:\n  ..$ event_id: int [1:21] 2 3 3 6 6 7 8 9 10 10 ...\n  ..$ i       : chr [1:21] \"1\" \"1\" \"2\" \"1\" ...\n  ..$ j       : chr [1:21] \"2\" \"3\" \"3\" \"6\" ...\n - attr(*, \"class\")= chr [1:2] \"hg_events\" \"list\"\n```\n\n\n:::\n:::\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "supporting": [
+      "simulation_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

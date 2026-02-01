@@ -1,0 +1,139 @@
+{{< include _setup.qmd >}}
+
+# Crime data
+
+So we have some crime data. The data will not be uploaded, I will just include
+the code here you can copy and paste to run the data cleaning / model fitting
+yourself.
+
+To briefly describe it
+
+- `perps.df` contains the `perp`-`perp` edge data.
+
+- `events.df` contains the `event`-`perp` edge data.
+
+## BA-Bipartite Network Specification
+
+Recall under the BA-Bipartite network specification we are **assuming** that marks
+are structured in the following way:
+
+- Nodes have two possible classifications - `event` and `perp`.
+
+- Each mark consists of exactly 1 new `event` node arriving, which connects to 
+old `perp` nodes according to the same degree-based weighting as the BA kernel.
+
+- The *number* of `perp` nodes is distributed Poisson(`lambda_new`)
+
+Under this specification, `perp`-`perp` edges are not allowed to exist (is this
+correct?). Hence we can ignore the edges present in the `perps.df` (we will
+revisit when trying different model specs).
+
+### Data prep
+
+Now, looking at the `perps.df` data:
+
+```{r}
+summary(as.numeric(perps$person_id))
+```
+
+It looks like the `person_id`'s stretch all the way from 5 to 1742898. We will 
+just treat these as node ID's. And in order to prevent any clashes, we will just
+prepend "event_" on to the `event_id` to use as the node ID's of the event nodes.
+
+First converting to long format.
+
+```{r}
+library(tidyr)
+library(dplyr)
+
+# Love how easy this is
+long_df <- events %>%
+  unnest(people) %>%
+  rename(person = people)
+```
+
+Now need to make sure the names don't clash as mentioned above (will prepend 
+"perp_" to the `perp` ID's aswell just for
+consistency):
+
+```{r}
+edges <- long_df %>% 
+  mutate(
+    event_id = paste0("event_", event_id),
+    person = paste0("perp_", person)
+    ) %>% 
+  rename(
+    i = event_id, # Doesn't matter what order we choose i/j
+    j = person,
+    time = diff_date
+  ) %>% 
+  select(i, j, time) %>% 
+  distinct() %>%  # The way the original data set was constructed, we end up with
+  filter(time < 5)                  # two identical rows per edge sometimes
+
+# Only considering a small sub net for example 
+```
+
+Lastly, we need to make sure we include the `perp`-`event` node classification.
+
+This is easier if we use `make_events()` first, as it will automatically 
+generate a `nodes` data frame, and then we can just add a column to this.
+
+:::callout-note
+Not sure if I like this manipulation after-the-fact. Wondering how you guys
+prepared your data.
+:::
+
+```{r}
+ev <- make_events(edges = edges)
+```
+
+Looks like 14000-ish events, 27000-ish node arrivals, and 19000-ish edges.
+
+Now just add a "role" column to `ev$nodes`:
+
+```{r}
+ev$nodes$role <- ifelse(
+  grepl("event", ev$nodes$id),
+  "event",
+  "perp"
+)
+```
+
+And we are good to fit.
+
+### Model fitting
+
+Only gonna consider a SMALL time window, just trying to demonstrate here.
+
+```{r}
+sum(ev$times < 5)
+```
+
+We'll set `T_end` = 5.
+
+```{r eval = F}
+params_bip_init <- list(
+  mu = 1,
+  K = 1,
+  beta = 1,
+  beta_edges = 1,
+  lambda_new = 3.5
+)
+
+fit <- fit_hawkesNet(
+      ev = ev,
+      params_init = params_bip_init,
+      mark_type = "ba_bip",
+      debug = T
+    )
+```
+
+
+
+
+
+
+
+
+

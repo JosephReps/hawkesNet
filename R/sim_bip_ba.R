@@ -1,5 +1,4 @@
-# sim_ba_bip.R
-
+# R/sim_bip_ba.R
 #' Simulate BA-bip mark (arrivals + edges) for one event
 #'
 #' Strict BA-bip generative story:
@@ -10,24 +9,23 @@
 #'   where p_i is proportional to (deg_i + delta) * exp(-beta_edges * age_i),
 #'   normalized over OLD perp nodes only.
 #'
-#' Node roles are NOT stored in the return object (to match sim_mark_ba()).
-#' In your Hawkes simulator, you should pass the roles into state_step() via role_k.
+#' This is the network-based version (net stores vertex attrs `time` and `role`).
+#' The return format matches sim_mark_ba(): `arrivals` is a data.frame of new nodes,
+#' and `edges` is a data.frame of new edges.
 #'
-#' @param state Pre-event state (must include named deg, born, role).
+#' @param net Pre-event network state.
 #' @param t_k Numeric scalar event time.
 #' @param params List containing at least beta_edges and lambda_new.
 #' @param delta Nonnegative scalar baseline for attractiveness.
-#' @param new_event Optional character scalar to force the event node id (tests).
+#' @param new_event_id Optional character scalar to force the event node id (tests).
 #'
-#' @return list(arrivals = <chr vec>, edges = data.frame(i,j))
+#' @return list(arrivals = <data.frame(id, role)>, edges = <data.frame(i,j)>)
 #' @export
-sim_mark_ba_bip <- function(state, t_k, params, delta = 0.001, new_event = NULL) {
-  stopifnot(is.list(state), all(c("deg", "born", "role") %in% names(state)))
+sim_mark_ba_bip <- function(net, t_k, params, delta = 0.001, new_event_id = NULL) {
   stopifnot(length(t_k) == 1L, is.numeric(t_k), is.finite(t_k))
   stopifnot(is.list(params))
+  stopifnot("beta_edges" %in% names(params), "lambda_new" %in% names(params))
 
-  stopifnot("beta_edges" %in% names(params))
-  stopifnot("lambda_new" %in% names(params))
   beta_edges <- params$beta_edges
   lambda_new <- params$lambda_new
 
@@ -36,59 +34,67 @@ sim_mark_ba_bip <- function(state, t_k, params, delta = 0.001, new_event = NULL)
   stopifnot(length(delta) == 1L, is.numeric(delta), is.finite(delta), delta >= 0)
 
   # --- choose/generate new EVENT node id ---
-  if (is.null(new_event)) {
-    new_event <- next_node_id(state)  # reuse existing helper
+  if (is.null(new_event_id)) {
+    new_event_id <- next_node_id(net)
   }
-  stopifnot(length(new_event) == 1L, nzchar(new_event))
-  new_event <- as.character(new_event)
+  stopifnot(length(new_event_id) == 1L, nzchar(new_event_id))
+  new_event_id <- as.character(new_event_id)
 
   # --- sample number of new PERP nodes ---
   K <- stats::rpois(1L, lambda_new)
   if (!is.finite(K) || K < 0) stop("Invalid K from rpois().", call. = FALSE)
 
-  # --- choose/generate ids for new PERP nodes (sequentially after the event id) ---
-  # Use the same id-space; ensure uniqueness by building a temporary state for id generation.
+  # --- generate ids for new PERP nodes (sequentially after the event id) ---
   new_perps <- character(0)
   if (K > 0L) {
-    tmp <- state
-    # pretend the new event exists so next_node_id increments beyond it
-    tmp$deg[new_event] <- 0L
-    tmp$born[new_event] <- t_k
-    tmp$adj[new_event] <- list(character(0))
-    tmp$role[new_event] <- "event"
+    # Prefer integer ids if possible; otherwise fall back to n<idx>
+    existing <- network::network.vertex.names(net)
+    if (is.null(existing)) existing <- character(0)
 
-    new_perps <- character(K)
-    for (m in seq_len(K)) {
-      nid <- next_node_id(tmp)
-      new_perps[m] <- nid
-      tmp$deg[nid] <- 0L
-      tmp$born[nid] <- t_k
-      tmp$adj[nid] <- list(character(0))
-      tmp$role[nid] <- "perp"
+    # Try integer id scheme
+    suppressWarnings(ints <- as.integer(c(existing, new_event_id)))
+    ints <- ints[is.finite(ints)]
+    if (length(ints) > 0L && is.finite(suppressWarnings(as.integer(new_event_id)))) {
+      base <- as.integer(new_event_id)
+      new_perps <- as.character(seq.int(from = base + 1L, length.out = K))
+    } else if (length(ints) > 0L) {
+      base <- max(ints)
+      new_perps <- as.character(seq.int(from = base + 1L, length.out = K))
+    } else {
+      # Non-integer IDs: ensure uniqueness with a simple counter
+      n0 <- length(existing)
+      new_perps <- paste0("n", seq.int(from = n0 + 2L, length.out = K))  # +1 would be event
+      if (new_event_id %in% new_perps) {
+        # extremely unlikely, but be safe
+        new_perps <- paste0(new_perps, "_p")
+      }
     }
   }
 
-  arrivals <- c(new_event, new_perps)
+  arrivals <- data.frame(
+    id = c(new_event_id, new_perps),
+    role = c("event", rep("perp", length(new_perps))),
+    stringsAsFactors = FALSE
+  )
 
-  # --- deterministic edges to new perps ---
-  det_edges <- if (K > 0L) {
-    data.frame(i = rep.int(new_event, K), j = new_perps, stringsAsFactors = FALSE)
+  # --- deterministic edges to NEW perps ---
+  det_edges <- if (length(new_perps) > 0L) {
+    data.frame(i = rep.int(new_event_id, length(new_perps)), j = new_perps, stringsAsFactors = FALSE)
   } else {
     data.frame(i = character(0), j = character(0), stringsAsFactors = FALSE)
   }
 
   # --- Bernoulli edges to OLD perps only ---
-  p_old <- edge_probs_ba_bip(state, t_k = t_k, beta_edges = beta_edges, delta = delta)
+  p_old <- edge_probs_ba_bip(net, t_k = t_k, beta_edges = beta_edges, delta = delta)
   old_perps <- names(p_old)
 
   if (length(old_perps) == 0L) {
-    # No old perps to attach to: return only deterministic edges
     return(list(arrivals = arrivals, edges = det_edges))
   }
 
   add <- stats::runif(length(p_old)) < p_old
   bern_edges <- if (any(add)) {
-    data.frame(i = rep.int(new_event, sum(add)), j = old_perps[add], stringsAsFactors = FALSE)
+    data.frame(i = rep.int(new_event_id, sum(add)), j = old_perps[add], stringsAsFactors = FALSE)
   } else {
     data.frame(i = character(0), j = character(0), stringsAsFactors = FALSE)
   }

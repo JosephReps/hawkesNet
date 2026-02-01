@@ -1,0 +1,15 @@
+{
+  "hash": "fa315b2dcda0c7812a494e4a1fa9685a",
+  "result": {
+    "engine": "knitr",
+    "markdown": "\n\n\n# Tooling\n\n*Package tooling i.e. debugging plots, ks-test etc.*\n\nNow that I have implemented most of the base features, I will be able to add a\nbunch of QOL and tooling. \n\nRight now, I have made a visual debugger for the model fitting:\n\nTry setting `debug = T` when fitting a model.\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# Include debugger plot here\n```\n:::\n\n\nWhat other info do you think it should display?\n\nAlso have KS testing / Network statistics plotting in the works.\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

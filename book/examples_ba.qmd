@@ -1,0 +1,82 @@
+{{< include _setup.qmd >}}
+
+# BA Examples
+
+Simulate BA data.
+
+```{r}
+set.seed(1)
+
+time <- 50
+params_ba_true <- list(
+  mu = 0.5,
+  K = 0.5,
+  beta = 0.5,
+  beta_edges = 2
+)
+
+sim <- sim_hawkesNet(
+  params = params_ba_true,
+  T_end = time,
+  mark_type = "ba"
+)
+```
+
+```{r}
+plot(sim$net)
+```
+
+```{r}
+print(paste("Number of simulated nodes:", nrow(sim$ev$nodes)))
+paste("Number of simulated edges:", nrow(sim$ev$edges))
+paste("Number of simulated events:", sim$events$n)
+```
+
+:::callout-note
+After tweaking with the parameters a bit, it seems that the number of edges is
+usually just directly proportional to the number of nodes. Is this a sign 
+something is wrong?
+:::
+
+Fit BA data.
+
+```{r}
+params_ba_init <- list(
+  mu = 1,
+  K = 1,
+  beta = 1,
+  beta_edges = 1
+)
+
+fit <- fit_hawkesNet(
+      ev = sim$ev,
+      params_init = params_ba_init,
+      mark_type = "ba"
+    )
+```
+
+Parameter values on the fitted scale:
+
+```{r}
+unlist(fit$par)
+```
+
+Not too bad.
+
+And, we can also grab parameter values on the transformed scale:
+
+```{r}
+# Yes I know this is a jank way to structure it right now, will fix
+fit$fit$par
+```
+
+
+
+
+
+
+
+
+
+
+

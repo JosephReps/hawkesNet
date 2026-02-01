@@ -4,17 +4,17 @@
 \alias{log_pmf_ba}
 \title{Log PMF of the BA mark kernel (Bernoulli-product form) for one event}
 \usage{
-log_pmf_ba(state, arrival_k, edges_k, t_k, params, delta = 0.001)
+log_pmf_ba(net, new_nodes, new_edges, t_k, params, delta = 0.001)
 }
 \arguments{
+\item{t_k}{Numeric scalar event time.}
+
 \item{state}{Pre-event state (see `state_init()`). Must include named `deg` and `born`.}
 
 \item{arrival_k}{Node ID of the node arriving at time `t_k`.}
 
 \item{edges_k}{A data.frame with columns `i` and `j` giving observed undirected
 edges at time `t_k`. May be a 0-row data.frame.}
-
-\item{t_k}{Numeric scalar event time.}
 
 \item{beta_edges}{Nonnegative scalar controlling exponential ageing in the
 attachment weights.}

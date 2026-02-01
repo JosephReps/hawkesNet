@@ -7,7 +7,7 @@
 state_init()
 }
 \value{
-A state list with empty degree, birth-time, and adjacency structures.
+A state list with empty degree, birth-time, adjacency, role, and a cached network object.
 }
 \description{
 Initialize deterministic state before any events

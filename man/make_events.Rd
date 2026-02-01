@@ -13,9 +13,12 @@ make_events(
 )
 }
 \arguments{
-\item{nodes}{Optional data.frame with columns `id`, `time`.}
+\item{nodes}{Optional data.frame with columns `id`, `time`.
+Additional columns are allowed and will be preserved.}
 
-\item{edges}{data.frame with columns `i`, `j`, `time`. (May be empty but must be provided.)}
+\item{edges}{data.frame with columns `i`, `j`, `time`.
+Additional columns are allowed and will be preserved.
+(May be empty but must be provided.)}
 
 \item{allow_implicit_birth}{Logical; if TRUE (default), endpoints missing from `nodes`
 and missing from `state0` are treated as born at their first incident edge time.}
@@ -41,4 +44,8 @@ Optionally, you may provide an initial baseline network state `state0`
 (built by `make_state()`), which defines nodes that already exist at the
 observation start. Baseline nodes in `state0` are treated as *known endpoints*
 for validation, but they are NOT added as events.
+
+Extra columns in `nodes` and `edges` are preserved and carried through into the
+returned `hg_events` object. In the returned object, `time` is replaced by
+`event_id` (an integer index into `times`).
 }

@@ -4,7 +4,7 @@
 \alias{validate_events}
 \title{Validate an events object}
 \usage{
-validate_events(events, strict_cols = TRUE)
+validate_events(events, strict_cols = FALSE)
 }
 \arguments{
 \item{events}{hg_events}

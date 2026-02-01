@@ -4,16 +4,16 @@
 \alias{sim_mark_ba}
 \title{Simulate BA mark (arrivals + edges) for one event}
 \usage{
-sim_mark_ba(state, t_k, params, delta = 0.001, new_node = NULL)
+sim_mark_ba(net, t_k, params, delta = 0.001, new_node_id = NULL)
 }
 \arguments{
-\item{state}{Pre-event state (must include named deg, born).}
+\item{net}{Pre-event state (must include named deg, born).}
 
 \item{t_k}{Numeric scalar event time.}
 
 \item{params}{List containing at least beta_edges and delta.}
 
-\item{new_node}{Optional character scalar to force the arriving node id
+\item{new_node_id}{Optional character scalar to force the arriving node id
 (useful for tests). If NULL, generated from state.}
 }
 \value{

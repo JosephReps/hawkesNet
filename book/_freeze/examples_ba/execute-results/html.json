@@ -1,0 +1,17 @@
+{
+  "hash": "6735012015d23d54a06e6c2f2eec36e7",
+  "result": {
+    "engine": "knitr",
+    "markdown": "\n\n\n# BA Examples\n\nSimulate BA data.\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(1)\n\ntime <- 50\nparams_ba_true <- list(\n  mu = 0.5,\n  K = 0.5,\n  beta = 0.5,\n  beta_edges = 2\n)\n\nsim <- sim_hawkesNet(\n  params = params_ba_true,\n  T_end = time,\n  mark_type = \"ba\"\n)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Simulation took 0.72 seconds\"\n```\n\n\n:::\n:::\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nplot(sim$net)\n```\n\n::: {.cell-output-display}\n![](examples_ba_files/figure-html/unnamed-chunk-3-1.png){width=672}\n:::\n:::\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nprint(paste(\"Number of simulated nodes:\", nrow(sim$ev$nodes)))\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Number of simulated nodes: 236\"\n```\n\n\n:::\n\n```{.r .cell-code}\npaste(\"Number of simulated edges:\", nrow(sim$ev$edges))\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Number of simulated edges: 235\"\n```\n\n\n:::\n\n```{.r .cell-code}\npaste(\"Number of simulated events:\", sim$events$n)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Number of simulated events: 236\"\n```\n\n\n:::\n:::\n\n\n:::callout-note\nAfter tweaking with the parameters a bit, it seems that the number of edges is\nusually just directly proportional to the number of nodes. Is this a sign \nsomething is wrong?\n:::\n\nFit BA data.\n\n\n::: {.cell}\n\n```{.r .cell-code}\nparams_ba_init <- list(\n  mu = 1,\n  K = 1,\n  beta = 1,\n  beta_edges = 1\n)\n\nfit <- fit_hawkesNet(\n      ev = sim$ev,\n      params_init = params_ba_init,\n      mark_type = \"ba\"\n    )\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Fitting took 86.9 seconds\"\n```\n\n\n:::\n:::\n\n\nParameter values on the fitted scale:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nunlist(fit$par)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n        mu          K       beta beta_edges \n 0.8502838  0.4381081  0.4946193  2.0018328 \n```\n\n\n:::\n:::\n\n\nNot too bad.\n\nAnd, we can also grab parameter values on the transformed scale:\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# Yes I know this is a jank way to structure it right now, will fix\nfit$fit$par\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n        mu          K       beta beta_edges \n-0.1621852 -0.8252896 -0.7039668  0.6940632 \n```\n\n\n:::\n:::\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "supporting": [
+      "examples_ba_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

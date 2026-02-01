@@ -1,0 +1,22 @@
+# Package Structure
+
+Same structure as the original repo, however you now provide the events data
+directly, rather than converting it to a network beforehand.
+
+See:
+
+![](workflow_1.png)
+![Current package pipeline, subject to changes.](workflow_2.png)
+
+So plug data into `make_events()`, choose a kernel and you're good. 
+
+Now, you could argue that the `make_events()` shouldn't be exposed to the user,
+and that it should happen internally. IDK I kind of like seeing how the events
+are structured.
+
+Also how do we feel in general about providing data as data frames rather than 
+networks? To me it feels much more natural, and it is much easier to work with
+the original data frames than trying to make changes using the network functions.
+
+Also I believe in the legacy code, edge less node arrivals were not supported in 
+the `events_to_net()` function, as it only took edges as an argument.

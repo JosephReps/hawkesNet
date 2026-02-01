@@ -1,0 +1,75 @@
+{{< include _setup.qmd >}}
+
+# BA-Bipartite Examples
+
+Simulate BIP-BA data.
+
+```{r}
+set.seed(1)
+
+time <- 10
+params_bip_true <- list(
+  mu = 0.5,
+  K = 0.5,
+  beta = 0.5,
+  beta_edges = 2,
+  lambda_new = 3.5
+)
+
+sim <- sim_hawkesNet(
+  params = params_bip_true,
+  T_end = time,
+  mark_type = "ba_bip"
+)
+```
+
+```{r}
+# Bipartite colouring
+col_map <- c(
+  event = "#377EB8",
+  perp  = "#E41A1C"
+)
+roles <- network::get.vertex.attribute(sim$net, "role")
+cols <- col_map[roles]
+
+plot(sim$net, vertex.col = cols)
+```
+
+```{r}
+print(paste("Number of simulated nodes:", nrow(sim$ev$nodes)))
+paste("Number of simulated edges:", nrow(sim$ev$edges))
+paste("Number of simulated events:", sim$events$n)
+```
+
+Fit BIP-BA data.
+
+```{r}
+params_bip_init <- list(
+  mu = 1,
+  K = 1,
+  beta = 1,
+  beta_edges = 1,
+  lambda_new = 3.5
+)
+
+fit <- fit_hawkesNet(
+      ev = sim$ev,
+      params_init = params_bip_init,
+      mark_type = "ba_bip"
+    )
+```
+
+Parameter values on the fitted scale:
+
+```{r}
+unlist(fit$par)
+```
+
+Parameter values on the transformed scale:
+
+```{r}
+fit$fit$par
+```
+
+
+

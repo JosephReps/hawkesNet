@@ -1,23 +1,18 @@
 # R/pmf_cs.R
 #
-# CS (change-statistics) Bernoulli-product mark kernel.
-# Requires:
-#   state$net : network::network (undirected)
-#   state$idx : named integer, mapping node-id -> vertex index in state$net
-#   state$born: named numeric, node entrance times
+# CS (change-statistics) Bernoulli-product mark kernel (NETWORK-BASED STATE).
 #
-# Key fix vs previous version:
-#   DO NOT construct "UndirectedNet". Use createCppModel(net ~ rhs) and
-#   model$setNetwork(ernm::as.BinaryNet(net)) like the original package.
-
-.cs_require_pkgs <- function() {
-  if (!requireNamespace("network", quietly = TRUE)) {
-    stop("CS kernel requires package 'network'. Please install it.", call. = FALSE)
-  }
-  if (!requireNamespace("ernm", quietly = TRUE)) {
-    stop("CS kernel requires package 'ernm'. Please install it.", call. = FALSE)
-  }
-}
+# Parameter convention (no nested vectors):
+#   - beta_edges   : numeric scalar >= 0
+#   - node_lambda  : numeric scalar > 0
+#   - CS_*         : numeric scalars, one per ERNM change-stat column
+#                   e.g. if change stats columns are c("edges","triangles","star.2"),
+#                   then params must include c("CS_edges","CS_triangles","CS_star.2")
+#
+# Network requirements:
+#   - net is a network::network
+#   - vertex names stored in network::network.vertex.names(net)
+#   - vertex attribute "time" stores node entrance times (numeric)
 
 .cs_net_copy <- function(net) {
   if (exists("network.copy", where = asNamespace("network"), inherits = FALSE)) {
@@ -56,6 +51,7 @@
 }
 
 # Validate observed edges: must be new<->old only, no duplicates, no loops.
+# Returns oriented endpoints (new_end, old_end) as character vectors (same length as nrow(edges_k)).
 validate_edges_cs <- function(edges_k, new_nodes, old_nodes) {
   stopifnot(is.data.frame(edges_k), all(c("i", "j") %in% names(edges_k)))
 
@@ -98,7 +94,6 @@ validate_edges_cs <- function(edges_k, new_nodes, old_nodes) {
 
 # Old-code-compatible: ensure at least 4 vertices + remove 'na' attribute before C++
 .cs_prepare_net_for_cpp <- function(net) {
-  .cs_require_pkgs()
   stopifnot(inherits(net, "network"))
 
   net2 <- net
@@ -116,233 +111,315 @@ validate_edges_cs <- function(edges_k, new_nodes, old_nodes) {
   net2
 }
 
-# Get/create (and cache) the ERNM cpp model, but ALWAYS setNetwork(as.BinaryNet(net))
+# Get/create (and cache) the ERNM cpp model, but ALWAYS setNetwork(as.BinaryNet(net)).
+# model_cache is a list(rhs = <chr>|NULL, model = <cpp model>|NULL)
 .cs_get_model <- function(net, formula_rhs, model_cache = NULL) {
-  .cs_require_pkgs()
   stopifnot(inherits(net, "network"))
   stopifnot(is.character(formula_rhs), length(formula_rhs) == 1L, nzchar(formula_rhs))
 
-  # cache hit?
-  if (!is.null(model_cache) && !is.null(model_cache$model) &&
-      is.character(model_cache$rhs) && identical(model_cache$rhs, formula_rhs)) {
+  if (is.null(model_cache)) model_cache <- list(rhs = NULL, model = NULL)
+
+  # If RHS matches, reuse model object. Otherwise rebuild.
+  if (!is.null(model_cache$model) && isTRUE(identical(model_cache$rhs, formula_rhs))) {
     mdl <- model_cache$model
   } else {
-    # Create a dedicated env that can see base + attached pkgs
-    e <- new.env(parent = globalenv())
-    e$new_net <- net
-
-    f <- stats::as.formula(paste("new_net ~", formula_rhs), env = e)
+    # Build ERNM C++ model from formula; note: LHS dummy net will be replaced by setNetwork
+    f <- stats::as.formula(paste0("net ~ ", formula_rhs))
     mdl <- ernm::createCppModel(f)
-
-    if (!is.null(model_cache)) {
-      model_cache$rhs <- formula_rhs
-      model_cache$model <- mdl
-      model_cache$env <- e   # keep env alive for safety
-    }
+    model_cache$rhs <- formula_rhs
+    model_cache$model <- mdl
   }
 
-  # ALWAYS update network before use (like old code does via setNetwork)
+  # MUST set network each time (net changes as we augment with new nodes)
   net_cpp <- .cs_prepare_net_for_cpp(net)
   mdl$setNetwork(ernm::as.BinaryNet(net_cpp))
-  mdl$calculate()
 
-  mdl
+  list(mdl = mdl, model_cache = model_cache)
 }
 
-# Compute Bernoulli probs for candidate edges new->old
-edge_probs_cs <- function(state,
+# Extract theta vector aligned to ERNM statistic names, using params$CS_<statname>
+.cs_extract_thetas <- function(params, stat_names) {
+  stopifnot(is.list(params))
+  stopifnot(is.character(stat_names), length(stat_names) >= 1L)
+
+  out <- numeric(length(stat_names))
+  names(out) <- stat_names
+
+  for (k in seq_along(stat_names)) {
+    sn <- stat_names[[k]]
+    nm <- paste0("CS_", sn)
+    if (!(nm %in% names(params))) {
+      stop("Missing CS parameter: params$", nm, call. = FALSE)
+    }
+    val <- params[[nm]]
+    if (!(is.numeric(val) && length(val) == 1L && is.finite(val))) {
+      stop("Invalid CS parameter: params$", nm, " must be finite numeric scalar.", call. = FALSE)
+    }
+    out[[k]] <- val
+  }
+
+  out
+}
+
+# Internal: ensure a net has a "time" vertex attribute with finite numeric values
+.cs_get_vertex_times <- function(net) {
+  tt <- network::get.vertex.attribute(net, "time")
+  if (is.null(tt)) stop("CS kernel requires vertex attribute 'time' on net.", call. = FALSE)
+  if (!is.numeric(tt)) stop("CS kernel: vertex attribute 'time' must be numeric.", call. = FALSE)
+  if (any(!is.finite(tt))) stop("CS kernel: vertex attribute 'time' has non-finite values.", call. = FALSE)
+  tt
+}
+
+# Internal: add new nodes to a *copy* of net (no edges), set names + time
+.cs_augment_net_with_new_nodes <- function(net, new_nodes, t_k) {
+  stopifnot(inherits(net, "network"))
+  stopifnot(is.numeric(t_k), length(t_k) == 1L, is.finite(t_k))
+
+  new_nodes <- unique(as.character(new_nodes))
+  new_nodes <- new_nodes[!is.na(new_nodes) & nzchar(new_nodes)]
+  if (length(new_nodes) == 0L) return(net)
+
+   # Ensure existing nodes have time
+  .cs_get_vertex_times(net)
+
+  net2 <- .cs_net_copy(net)
+
+  nv_old <- network::network.size(net2)
+  network::add.vertices(net2, nv = length(new_nodes))
+  nv_new <- network::network.size(net2)
+  new_vids <- seq.int(nv_old + 1L, nv_new)
+
+  # Set vertex names (network.vertex.names uses "vertex.names")
+  network::set.vertex.attribute(net2, "vertex.names", value = new_nodes, v = new_vids)
+
+  # Set time for new nodes
+  network::set.vertex.attribute(net2, "time", value = rep(t_k, length(new_nodes)), v = new_vids)
+
+  net2
+}
+
+# Internal: mapping node-id -> vertex index for a net
+.cs_make_idx <- function(net) {
+  nms <- network::network.vertex.names(net)
+  if (is.null(nms)) nms <- character(0)
+  if (anyNA(nms) || any(!nzchar(nms))) stop("CS kernel requires non-empty vertex names.", call. = FALSE)
+  setNames(seq_along(nms), nms)
+}
+
+# Internal: compute CS attachment probabilities for candidate new-old edges.
+# Returns named numeric vector with names "new|old".
+edge_probs_cs <- function(net,
                           new_nodes,
                           old_nodes,
                           t_k,
-                          CS_params,
-                          beta_edges = 0,
+                          params,
                           formula_rhs,
                           truncation = Inf,
                           model_cache = NULL,
+                          beta_edges = NULL,
                           eps = 1e-12) {
-  .cs_require_pkgs()
 
-  stopifnot(is.list(state), all(c("net", "idx", "born") %in% names(state)))
-  stopifnot(inherits(state$net, "network"))
+  stopifnot(inherits(net, "network"))
   stopifnot(is.numeric(t_k), length(t_k) == 1L, is.finite(t_k))
-  stopifnot(is.numeric(beta_edges), length(beta_edges) == 1L, is.finite(beta_edges), beta_edges >= 0)
-  stopifnot(is.numeric(CS_params), all(is.finite(CS_params)))
+  stopifnot(is.list(params))
   stopifnot(is.character(formula_rhs), length(formula_rhs) == 1L, nzchar(formula_rhs))
   stopifnot(is.numeric(eps), length(eps) == 1L, is.finite(eps), eps > 0, eps < 0.5)
+
+  # allow passing beta_edges explicitly (useful for tests/back-compat), otherwise take from params
+  if (is.null(beta_edges)) {
+    if (!("beta_edges" %in% names(params))) stop("edge_probs_cs(): missing params$beta_edges", call. = FALSE)
+    beta_edges <- params$beta_edges
+  }
+  stopifnot(is.numeric(beta_edges), length(beta_edges) == 1L, is.finite(beta_edges), beta_edges >= 0)
 
   new_nodes <- unique(as.character(new_nodes))
   old_nodes <- unique(as.character(old_nodes))
 
   if (length(new_nodes) == 0L || length(old_nodes) == 0L) {
-    return(structure(numeric(0), names = character(0)))
+    return(list(p = structure(numeric(0), names = character(0)), model_cache = model_cache))
   }
 
   cand <- .cs_candidates_new_old(new_nodes, old_nodes, truncation = truncation)
   tails <- cand$tail
   heads <- cand$head
-  if (length(tails) == 0L) return(structure(numeric(0), names = character(0)))
+  if (length(tails) == 0L) return(list(p = structure(numeric(0), names = character(0)), model_cache = model_cache))
 
-  tail_idx <- state$idx[tails]
-  head_idx <- state$idx[heads]
+  idx <- .cs_make_idx(net)
+
+  tail_idx <- idx[tails]
+  head_idx <- idx[heads]
   if (any(is.na(tail_idx)) || any(is.na(head_idx))) {
-    stop("edge_probs_cs(): missing idx mapping for some candidate nodes. Did you add arrivals to state first?",
+    stop("edge_probs_cs(): missing idx mapping for some candidate nodes. Did you augment net with arrivals first?",
          call. = FALSE)
   }
 
-  mdl <- .cs_get_model(state$net, formula_rhs = formula_rhs, model_cache = model_cache)
+  res_mdl <- .cs_get_model(net, formula_rhs = formula_rhs, model_cache = model_cache)
+  mdl <- res_mdl$mdl
+  model_cache <- res_mdl$model_cache
 
   C <- mdl$computeChangeStats(as.integer(tail_idx), as.integer(head_idx))
   if (!is.matrix(C)) C <- as.matrix(C)
 
-  if (ncol(C) != length(CS_params)) {
-    stop(
-      "edge_probs_cs(): length(CS_params) does not match number of change-stat columns.\n",
-      "ncol(change_stats) = ", ncol(C), ", length(CS_params) = ", length(CS_params),
-      call. = FALSE
-    )
+  cs_stats <- mdl$statistics()
+  stat_names <- names(cs_stats)
+  if (is.null(stat_names) || any(!nzchar(stat_names))) {
+    stop("edge_probs_cs(): change-stat matrix has no valid column names; cannot map to CS_* params.",
+         call. = FALSE)
   }
 
-  eta <- as.vector(C %*% CS_params)
+  thetas <- .cs_extract_thetas(params, stat_names = stat_names)
+
+  eta <- as.vector(C %*% unname(thetas))
   if (any(!is.finite(eta))) stop("edge_probs_cs(): non-finite linear predictors.", call. = FALSE)
 
   p0 <- stats::plogis(eta)
 
-  # decay uses OLD node entrance times (node arrival times)
-  age <- t_k - state$born[heads]
-  if (any(!is.finite(age))) stop("edge_probs_cs(): non-finite ages from born times.", call. = FALSE)
-  if (any(age < 0)) stop("edge_probs_cs(): negative ages encountered (born time after t_k).", call. = FALSE)
+  # decay uses OLD node entrance times (node arrival times), stored as vertex attr "time"
+  times <- .cs_get_vertex_times(net)
+  names(times) <- network::network.vertex.names(net)
+  age <- t_k - times[heads]
+  if (any(!is.finite(age))) stop("edge_probs_cs(): non-finite ages from time attribute.", call. = FALSE)
+  if (any(age < 0)) stop("edge_probs_cs(): negative ages encountered (time after t_k).", call. = FALSE)
 
   p <- p0 * exp(-beta_edges * age)
   p <- pmin(pmax(p, eps), 1 - eps)
 
   names(p) <- paste(tails, heads, sep = "|")
-  p
+  list(p = p, model_cache = model_cache)
 }
 
 #' Log PMF for one CS event (Poisson arrivals + Bernoulli product over candidates)
 #'
+#' Signature matches the NETWORK-based kernels:
+#'   log_pmf_cs(net, new_nodes, new_edges, t_k, params, ...)
+#'
+#' params must include:
+#'   - beta_edges
+#'   - node_lambda
+#'   - CS_* parameters matching ERNM change-stat column names (prefixed with "CS_")
+#'
 #' @export
-log_pmf_cs <- function(state,
-                       arrivals_k,
-                       edges_k,
+log_pmf_cs <- function(net,
+                       new_nodes,
+                       new_edges,
                        t_k,
                        params,
                        formula_rhs,
                        truncation = Inf,
-                       max_node_time = Inf,
+                       max_node_time = 1e10,
                        model_cache = NULL,
                        eps = 1e-12) {
-  .cs_require_pkgs()
 
-  stopifnot(is.list(state), all(c("net", "idx", "born") %in% names(state)))
-  stopifnot(inherits(state$net, "network"))
-  stopifnot(is.data.frame(edges_k), all(c("i", "j") %in% names(edges_k)))
+  stopifnot(inherits(net, "network"))
   stopifnot(is.numeric(t_k), length(t_k) == 1L, is.finite(t_k))
   stopifnot(is.list(params))
+  stopifnot(is.character(formula_rhs), length(formula_rhs) == 1L, nzchar(formula_rhs))
+  stopifnot(is.numeric(max_node_time), length(max_node_time) == 1L, is.finite(max_node_time))
 
-  for (nm in c("beta_edges", "node_lambda", "CS_params")) {
+  for (nm in c("beta_edges", "node_lambda")) {
     if (!(nm %in% names(params))) stop("log_pmf_cs(): missing params$", nm, call. = FALSE)
   }
 
   beta_edges  <- params$beta_edges
   node_lambda <- params$node_lambda
-  CS_params   <- params$CS_params
 
   stopifnot(is.numeric(beta_edges), length(beta_edges) == 1L, is.finite(beta_edges), beta_edges >= 0)
   stopifnot(is.numeric(node_lambda), length(node_lambda) == 1L, is.finite(node_lambda), node_lambda > 0)
-  stopifnot(is.numeric(CS_params), all(is.finite(CS_params)))
-  stopifnot(is.character(formula_rhs), length(formula_rhs) == 1L, nzchar(formula_rhs))
-  stopifnot(is.numeric(max_node_time), length(max_node_time) == 1L, is.finite(max_node_time))
 
-  arrivals_k <- unique(as.character(arrivals_k))
-  arrivals_k <- arrivals_k[!is.na(arrivals_k) & nzchar(arrivals_k)]
+  # Normalize new node IDs
+  if (is.null(new_nodes) || nrow(new_nodes) == 0L) {
+    arrivals_k <- character(0)
+  } else {
+    stopifnot(is.data.frame(new_nodes), "id" %in% names(new_nodes))
+    arrivals_k <- unique(as.character(new_nodes$id))
+    arrivals_k <- arrivals_k[!is.na(arrivals_k) & nzchar(arrivals_k)]
+  }
+  M <- length(arrivals_k)
 
-  # old nodes = current state node IDs (use idx names)
-  old_nodes <- names(state$idx)
+  # Old nodes from current net state
+  old_nodes <- network::network.vertex.names(net)
   if (is.null(old_nodes)) old_nodes <- character(0)
   old_nodes <- old_nodes[!is.na(old_nodes) & nzchar(old_nodes)]
   old_nodes <- unique(old_nodes)
 
+  # New nodes must not already exist
   if (length(intersect(arrivals_k, old_nodes)) > 0L) {
     bad <- intersect(arrivals_k, old_nodes)
-    stop("log_pmf_cs(): arrivals_k contains nodes already present in state: ",
+    stop("log_pmf_cs(): new_nodes contains nodes already present in net: ",
          paste(bad, collapse = ", "), call. = FALSE)
   }
 
-  # Poisson arrivals term (like old code’s dpois(new_nodes-old_nodes, node_lambda)) :contentReference[oaicite:6]{index=6}
+  # Arrival count model (with optional max_node_time cutoff)
   if (t_k > max_node_time) {
-    if (length(arrivals_k) > 0L) stop("log_pmf_cs(): t_k > max_node_time but arrivals_k is non-empty.", call. = FALSE)
-    ll_nodes <- 0.0
+    if (M != 0L) return(-Inf)
+    ll_arr <- 0.0
   } else {
-    ll_nodes <- stats::dpois(length(arrivals_k), lambda = node_lambda, log = TRUE)
+    ll_arr <- stats::dpois(M, lambda = node_lambda, log = TRUE)
   }
 
-  # no old nodes => no edges possible
+  # No old nodes => no candidate edges
   if (length(old_nodes) == 0L) {
-    if (nrow(edges_k) != 0L) stop("log_pmf_cs(): no old nodes exist, but edges were observed.", call. = FALSE)
-    return(as.numeric(ll_nodes))
+    if (!is.null(new_edges) && nrow(new_edges) > 0L) return(-Inf)
+    return(list(logp = ll_arr, model_cache = model_cache, edge_probs = 0))
+
   }
 
-  # no arrivals => no candidate edges; edges must be empty
-  if (length(arrivals_k) == 0L) {
-    if (nrow(edges_k) != 0L) stop("log_pmf_cs(): no arrivals but edges were observed.", call. = FALSE)
-    return(as.numeric(ll_nodes))
+  # Ensure new_edges is a df(i,j) even if empty/null
+  if (is.null(new_edges)) {
+    edges_k <- data.frame(i = character(0), j = character(0), stringsAsFactors = FALSE)
+  } else {
+    edges_k <- new_edges
+    stopifnot(is.data.frame(edges_k), all(c("i", "j") %in% names(edges_k)))
+    if (nrow(edges_k) == 0L) {
+      edges_k <- data.frame(i = character(0), j = character(0), stringsAsFactors = FALSE)
+    }
   }
 
-  # augment state with the new isolated vertices *before* computing change-stats
-  net2  <- .cs_net_copy(state$net)
-  idx2  <- state$idx
-  born2 <- state$born
+  # If no arrivals, then no edges allowed
+  if (M == 0L) {
+    if (nrow(edges_k) > 0L) return(-Inf)
+    return(list(logp = ll_arr, model_cache = model_cache, edge_probs = 0))
+  }
 
-  nv_old <- network::network.size(net2)
-  network::add.vertices(net2, nv = length(arrivals_k))
-  new_vids <- seq.int(nv_old + 1L, nv_old + length(arrivals_k))
+  # Augment a copy of net with the new nodes (no edges) for change stats
+  net2 <- .cs_augment_net_with_new_nodes(net, arrivals_k, t_k = t_k)
 
-  # set vertex "name" if you want; mapping is what matters
-  network::set.vertex.attribute(net2, "name", value = arrivals_k, v = new_vids)
-  idx2[arrivals_k]  <- as.integer(new_vids)
-  born2[arrivals_k] <- t_k
-
-  state2 <- state
-  state2$net  <- net2
-  state2$idx  <- idx2
-  state2$born <- born2
-
-  # validate observed edges are new<->old only
-  ends <- validate_edges_cs(edges_k, new_nodes = arrivals_k, old_nodes = old_nodes)
-
-  p <- edge_probs_cs(
-    state       = state2,
-    new_nodes   = arrivals_k,
-    old_nodes   = old_nodes,
-    t_k         = t_k,
-    CS_params   = CS_params,
-    beta_edges  = beta_edges,
+  # Candidate probs
+  res_p <- edge_probs_cs(
+    net = net2,
+    new_nodes = arrivals_k,
+    old_nodes = old_nodes,
+    t_k = t_k,
+    params = params,
     formula_rhs = formula_rhs,
-    truncation  = truncation,
+    truncation = truncation,
     model_cache = model_cache,
-    eps         = eps
+    beta_edges = beta_edges,
+    eps = eps
   )
 
+  p <- res_p$p
+  model_cache <- res_p$model_cache
+
   if (length(p) == 0L) {
-    if (nrow(edges_k) == 0L) return(as.numeric(ll_nodes))
-    stop("log_pmf_cs(): no candidate edges but edges were observed.", call. = FALSE)
+    # no candidates => must observe no edges
+    if (nrow(edges_k) > 0L) return(list(logp = -Inf, model_cache = model_cache, edge_probs = p))
+    return(list(logp = ll_arr, model_cache = model_cache))
   }
 
-  present_keys <- paste(ends$new_end, ends$old_end, sep = "|")
+  # Validate observed edges and orient to (new, old)
+  oriented <- validate_edges_cs(edges_k, new_nodes = arrivals_k, old_nodes = old_nodes)
+  obs_keys <- paste(oriented$new_end, oriented$old_end, sep = "|")
 
-  missing <- setdiff(present_keys, names(p))
-  if (length(missing) > 0L) {
-    stop(
-      "log_pmf_cs(): observed edges include pairs not in the candidate set (possibly due to truncation).\n",
-      "Example missing candidate: ", missing[[1]],
-      call. = FALSE
-    )
+  # Observed edges must be subset of candidate set
+  if (length(setdiff(obs_keys, names(p))) > 0L) {
+    bad <- setdiff(obs_keys, names(p))[1]
+    return(list(logp = -Inf, model_cache = model_cache, edge_probs = p))
   }
 
-  in_mark <- names(p) %in% present_keys
-  ll_edges <- sum(if (any(in_mark)) log(p[in_mark]) else 0) +
-    sum(if (any(!in_mark)) log1p(-p[!in_mark]) else 0)
+  # Bernoulli product over candidates
+  is_obs <- names(p) %in% obs_keys
+  ll_edges <- sum(log(ifelse(is_obs, p, 1 - p)))
 
-  as.numeric(ll_nodes + ll_edges)
+  list(logp = ll_arr + ll_edges, model_cache = model_cache, edge_probs = p)
 }

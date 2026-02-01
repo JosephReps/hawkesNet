@@ -1,0 +1,75 @@
+{{< include _setup.qmd >}}
+
+# Model Fitting
+
+Model fitting UX is approximately the same, however you pass events rather than
+`mark_filtration` network object.
+
+```{r include = FALSE}
+set.seed(1)
+
+params_ba <- list(
+  mu = 2,
+  K = 0.5,
+  beta = 0.8,
+  beta_edges = 0.5
+)
+
+time <- 5
+
+sim <- sim_hawkesNet(
+  params = params_ba,
+  T_end = time,
+  mark_type = "ba"
+)
+```
+
+```{r}
+str(sim$ev)
+```
+
+```{r}
+params_init <- list(
+  mu = 5,
+  K = 0.3,
+  beta = 1,
+  beta_edges = 1
+)
+
+fit <- fit_hawkesNet(
+    ev = sim$ev,
+    params_init = params_init,
+    mark_type = "ba"
+)
+```
+
+And we can see the fitted values:
+
+```{r}
+fit$fit$par
+```
+
+Internally, the network is built incrementally event-by-event, for each iteration of the
+likelihood, rather than rebuilding the whole network up until that event, per-event.
+
+Still need to implement Duncan's improvement which should make the model fitting 
+lightning quick, as it means we only build the network object a SINGLE time, for 
+the entire fitting process!
+
+Fully list of arguments:
+
+```{r}
+# List arguments here, probably some package to make a neat table.
+```
+
+
+
+
+
+
+
+
+
+
+
+

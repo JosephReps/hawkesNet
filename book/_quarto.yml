@@ -1,0 +1,47 @@
+project:
+  type: book
+  execute-dir: project
+  output-dir: ../docs/book
+
+book:
+  title: "fixNet"
+  subtitle: "A tutorial for Hawkes network growth models"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - package_structure.qmd
+    - events.qmd
+    - simulation.qmd
+    - model_fitting.qmd
+    - tooling.qmd
+    - part: "Examples"
+      chapters:
+        - examples_ba.qmd
+        - examples_cs.qmd
+        - examples_ba_bip.qmd
+    - part: "Custom kernels"
+      chapters:
+        - custom_pmf.qmd
+        - custom_sim.qmd
+    - part: "Sim studies"
+      chapters:
+        - crime_data.qmd
+        - conference_data.qmd
+    - part: "Sim studies"
+      chapters:
+        - ba_study.qmd
+        - cs_study.qmd
+        - ba_bip_study.qmd
+    - references.qmd
+
+format:
+  html:
+    toc: true
+    code-fold: false
+    code-tools: false
+
+execute:
+  echo: true
+  message: false
+  warning: false
+  freeze: auto

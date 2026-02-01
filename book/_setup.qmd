@@ -1,0 +1,18 @@
+```{R}
+#| include: false
+
+pkg_dir <- Sys.getenv("QUARTO_PROJECT_DIR", unset = getwd())
+
+if ("package:fixNet" %in% search())
+  detach("package:fixNet", unload = TRUE, character.only = TRUE)
+
+if ("fixNet" %in% loadedNamespaces())
+  unloadNamespace("fixNet")
+
+devtools::load_all(pkg_dir, quiet = TRUE)
+
+library(network)
+library(sna)
+library(withr)
+library(ernm)
+```

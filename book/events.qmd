@@ -1,0 +1,59 @@
+{{< include _setup.qmd >}}
+
+# Events
+
+So as stated, shifted from providing a network, to providing raw event data.
+Opinions?
+
+Example:
+
+```{r}
+nodes <- data.frame(
+  id   = c("1", "2", "3"),
+  time = c(0, 1, 2)
+)
+edges <- data.frame(
+  i    = c("1", "1"),
+  j    = c("2", "3"),
+  time = c(1, 2)
+)
+
+ev <- make_events(nodes = nodes, edges = edges)
+ev
+```
+
+In the case you only have `edges`, the `make_events()` function will implicitly
+generate the nodes as they appear in `edges`. Note this is assuming that nodes
+join the network at the first time in which they appear in `edges`.
+
+```{r}
+edges <- data.frame(
+  i    = c("1", "1"),
+  j    = c("2", "3"),
+  time = c(1, 2)
+)
+
+fixNet::make_events(edges = edges)
+```
+
+There are also two useful helpers for working with events, `edges_by_event()` and
+`nodes_by_event()`:
+
+```{r}
+edges_by_event(ev)
+nodes_by_event(ev)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+{
+  "hash": "a1492e9af3f0c3d695317e3d32ffb567",
+  "result": {
+    "engine": "knitr",
+    "markdown": "\n::: {.cell}\n\n```{.r .cell-code}\nsource(\"_setup.R\")\n```\n:::\n\n\n# Preface {.unnumbered}\n\nThis is a Quarto book. (On chud)\n\nTo learn more about Quarto books visit <https://quarto.org/docs/books>.\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

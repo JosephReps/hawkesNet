@@ -10,9 +10,10 @@ nodes_by_event(events)
 \item{events}{An `hg_events` object (from `make_events()` or `as_events()`).}
 }
 \value{
-A list of length `nrow(events$times)`. Element `[[k]]` is a character
-  vector of node ids arriving at event `k`. Events with zero arrivals return
-  `character(0)`.
+A list of length `nrow(events$times)`. Element `[[k]]` is a data.frame
+  of node arrivals for event `k` (must contain column `id`; may contain `role`,
+  `score`, etc). Events with zero arrivals return a 0-row data.frame with the
+  same columns (minus `event_id`).
 }
 \description{
 Split node arrivals into per-event batches

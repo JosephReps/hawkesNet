@@ -1,0 +1,15 @@
+{
+  "hash": "eab6a32da64c28d188ffd9b0a175a18e",
+  "result": {
+    "engine": "knitr",
+    "markdown": "\n\n\n# Model Fitting\n\nModel fitting UX is approximately the same, however you pass events rather than\n`mark_filtration` network object.\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nstr(sim$ev)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nList of 3\n $ times:'data.frame':\t22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ t       : num [1:22] 0.378 0.45 0.636 1.27 1.425 ...\n $ nodes:'data.frame':\t22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ id      : chr [1:22] \"1\" \"2\" \"3\" \"4\" ...\n $ edges:'data.frame':\t21 obs. of  3 variables:\n  ..$ event_id: int [1:21] 2 3 3 6 6 7 8 9 10 10 ...\n  ..$ i       : chr [1:21] \"1\" \"1\" \"2\" \"1\" ...\n  ..$ j       : chr [1:21] \"2\" \"3\" \"3\" \"6\" ...\n - attr(*, \"class\")= chr [1:2] \"hg_events\" \"list\"\n```\n\n\n:::\n:::\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nparams_init <- list(\n  mu = 5,\n  K = 0.3,\n  beta = 1,\n  beta_edges = 1\n)\n\nfit <- fit_hawkesNet(\n    ev = sim$ev,\n    params_init = params_init,\n    mark_type = \"ba\"\n)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"Fitting took 11.86 seconds\"\n```\n\n\n:::\n:::\n\n\nAnd we can see the fitted values:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nfit$fit$par\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n        mu          K       beta beta_edges \n  1.117204  -1.867828  -7.026871  -2.276224 \n```\n\n\n:::\n:::\n\n\nInternally, the network is built incrementally event-by-event, for each iteration of the\nlikelihood, rather than rebuilding the whole network up until that event, per-event.\n\nStill need to implement Duncan's improvement which should make the model fitting \nlightning quick, as it means we only build the network object a SINGLE time, for \nthe entire fitting process!\n\nFully list of arguments:\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# List arguments here, probably some package to make a neat table.\n```\n:::\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

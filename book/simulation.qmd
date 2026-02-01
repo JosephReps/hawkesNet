@@ -1,0 +1,78 @@
+{{< include _setup.qmd >}}
+
+# Simulation
+
+Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS).
+
+The algorithm used is the same, except the upper bound for thinning is 
+recalculated after each event, rather than at the very beginning, which makes it
+slightly more efficient, and means you don't have to worry about setting a valid
+`mu_multiplier` value.
+
+Example:
+
+```{r}
+set.seed(1)
+
+params_ba <- list(
+  mu = 2,
+  K = 0.5,
+  beta = 0.8,
+  beta_edges = 0.5
+)
+
+time <- 5
+
+sim <- sim_hawkesNet(
+  params = params_ba,
+  T_end = time,
+  return_ev = TRUE,
+  debug = FALSE,
+  mark_type = "ba"
+)
+
+names(sim)
+```
+
+Looking at the output.
+
+`events` contains the times and number of total events simulated:
+
+```{r}
+sim$events
+```
+
+`accept_probs` contains the acceptance probabilities of each event:
+
+```{r}
+sim$accept_probs
+```
+
+`net` is the final network created from the events:
+
+```{r figure.caption = "Realisation of a BA simulation"}
+plot(sim$net)
+```
+
+:::callout-tip
+Notice that all the vertex attributes are preserved. Also supports edge 
+attributes if custom kernels are written which utilize these later i.e. weighted
+edges, toggleable edges etc.
+:::
+
+`ev` which is the `hg_events` object which can be plugged directly into `fit_hawkesNet()`.
+
+```{r}
+str(sim$ev)
+```
+
+
+
+
+
+
+
+
+
+
+
