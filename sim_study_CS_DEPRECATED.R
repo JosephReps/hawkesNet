@@ -1,5 +1,5 @@
 ## sim_study_CS.R
-## Cluster-friendly simulation study for fixNet CS Hawkes growth:
+## Cluster-friendly simulation study for hawkesNet CS Hawkes growth:
 ## simulate -> fit -> save results
 
 suppressPackageStartupMessages({

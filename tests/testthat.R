@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(fixNet)
+library(hawkesNet)
 
-test_check("fixNet")
+test_check("hawkesNet")

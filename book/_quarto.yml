@@ -4,7 +4,7 @@ project:
   output-dir: ../docs/book
 
 book:
-  title: "fixNet"
+  title: "hawkesNet"
   subtitle: "A tutorial for Hawkes network growth models"
   chapters:
     - index.qmd

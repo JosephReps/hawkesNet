@@ -1,5 +1,5 @@
 ## sim_study_BIP_BA.R
-## Cluster-friendly simulation study for fixNet BA-bip Hawkes growth:
+## Cluster-friendly simulation study for hawkesNet BA-bip Hawkes growth:
 ## simulate -> fit -> save results
 
 suppressPackageStartupMessages({

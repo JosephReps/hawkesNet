@@ -33,7 +33,7 @@ edges <- data.frame(
   time = c(1, 2)
 )
 
-fixNet::make_events(edges = edges)
+hawkesNet::make_events(edges = edges)
 ```
 
 There are also two useful helpers for working with events, `edges_by_event()` and
