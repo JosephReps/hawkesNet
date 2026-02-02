@@ -1,18 +1,15 @@
 #' Add one event to the network (nodes, then edges)
 #'
-#' @param net network object
-#' @param new_nodes data.frame of nodes to add (must have id; may have role)
-#' @param new_edges data.frame of edges to add (must have i, j; may have attrs)
-#' @param t numeric scalar time
+#' @inheritParams new-event-params
 #'
 #' @return updated network object
 #' @export
-net_add_event <- function(net, new_nodes, new_edges, t) {
+net_add_event <- function(net, new_nodes, new_edges, t_k) {
   if (!is.null(new_nodes) && nrow(new_nodes) > 0L) {
-    net <- net_add_nodes(net, new_nodes, t)
+    net <- net_add_nodes(net, new_nodes, t_k)
   }
   if (!is.null(new_edges) && nrow(new_edges) > 0L) {
-    net <- net_add_edges(net, new_edges, t)
+    net <- net_add_edges(net, new_edges, t_k)
   }
   net
 }

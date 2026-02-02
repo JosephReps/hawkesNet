@@ -1,10 +1,13 @@
-#' Split node arrivals into per-event batches
+#' Split nodes into per-event batches
 #'
-#' @param events An `hg_events` object (from `make_events()` or `as_events()`).
-#' @return A list of length `nrow(events$times)`. Element `[[k]]` is a data.frame
-#'   of node arrivals for event `k` (must contain column `id`; may contain `role`,
-#'   `score`, etc). Events with zero arrivals return a 0-row data.frame with the
-#'   same columns (minus `event_id`).
+#' @param events An events object created by `make_events()`.
+#'
+#' @return A list with one element per event. Element `[[k]]` is a data.frame of
+#'   nodes for event `k` with column `id` (plus any additional node
+#'   attributes), excluding `event_id`. Events with zero nodes return a 0-row
+#'   data.frame with the same columns.
+#'
+#'
 #' @export
 nodes_by_event <- function(events) {
   validate_events(events)

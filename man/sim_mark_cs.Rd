@@ -10,7 +10,7 @@ sim_mark_cs(
   params,
   formula_rhs,
   truncation = Inf,
-  max_node_time = Inf,
+  max_node_time = 1e+10,
   model_cache = NULL,
   new_nodes = NULL,
   eps = 1e-12

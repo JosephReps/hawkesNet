@@ -2,24 +2,26 @@
 % Please edit documentation in R/net_add_nodes.R
 \name{net_add_nodes}
 \alias{net_add_nodes}
-\title{Title}
+\title{Add nodes to the network object}
 \usage{
-net_add_nodes(net, new_nodes, t)
+net_add_nodes(net, new_nodes, t_k)
 }
 \arguments{
-\item{new_nodes}{data.frame with at least column "node_ids". Any additional
+\item{net}{network object, the current network at time t_k}
+
+\item{new_nodes}{data.frame with at least column "id". Any additional
 columns will be treated as vertex attributes.}
 
-\item{t}{}
+\item{t_k}{numeric scalar, the event timestamp}
 }
 \value{
-Updated `network` object.x
+Updated `network` object
 }
 \description{
-Title
+Add nodes to the network object
 }
 \examples{
 # net <- network::network.initialize(0, directed = FALSE)
-# net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t=0)
-# net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t=0.5)
+# net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t_k=0)
+# net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t_k=0.5)
 }

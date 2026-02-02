@@ -2,24 +2,26 @@
 % Please edit documentation in R/net_add_edges.R
 \name{net_add_edges}
 \alias{net_add_edges}
-\title{Title}
+\title{Add edges to the network object}
 \usage{
-net_add_edges(net, new_edges, t)
+net_add_edges(net, new_edges, t_k)
 }
 \arguments{
+\item{net}{network object, the current network at time t_k}
+
 \item{new_edges}{data.frame with at least columns "i" and "j". Any additional
 columns will be treated as edge attributes.}
 
-\item{t}{}
+\item{t_k}{numeric scalar, the event timestamp}
 }
 \value{
-Updated `network` object.
+Updated `network` object
 }
 \description{
-Title
+Add edges to the network object
 }
 \examples{
 # net <- network::network.initialize(0, directed = FALSE)
-# net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t=0)
-# net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t=0.5)
+# net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t_k=0)
+# net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t_k=0.5)
 }

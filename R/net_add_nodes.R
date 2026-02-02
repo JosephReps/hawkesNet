@@ -1,24 +1,21 @@
-#' Title
+#' Add nodes to the network object
 #'
-#' @param net
-#' @param new_nodes data.frame with at least column "node_ids". Any additional
-#'                  columns will be treated as vertex attributes.
-#' @param t
+#' @inheritParams new-event-params
 #'
-#' @return Updated `network` object.x
+#' @return Updated `network` object
 #' @export
 #'
 #' @examples
 #' # net <- network::network.initialize(0, directed = FALSE)
-#' # net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t=0)
-#' # net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t=0.5)
-net_add_nodes <- function(net, new_nodes, t) {
+#' # net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t_k=0)
+#' # net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t_k=0.5)
+net_add_nodes <- function(net, new_nodes, t_k) {
   # Input validation
   if (!inherits(net, "network")) {
     stop("net_add_nodes(): net must be a 'network' object.", call. = FALSE)
   }
-  if (!(is.numeric(t) && length(t) == 1L && is.finite(t))) {
-    stop("net_add_nodes(): t must be a single finite numeric.", call. = FALSE)
+  if (!(is.numeric(t_k) && length(t_k) == 1L && is.finite(t_k))) {
+    stop("net_add_nodes(): t_k must be a single finite numeric.", call. = FALSE)
   }
   if (!is.data.frame(new_nodes)) {
     stop("net_add_nodes(): new_nodes must be a data.frame", call. = FALSE)
@@ -49,7 +46,7 @@ net_add_nodes <- function(net, new_nodes, t) {
   }
 
   # Construct vertex attributes
-  new_nodes$time <- t
+  new_nodes$time <- t_k
   names(new_nodes)[names(new_nodes) == "id"] <- "vertex.names"
   # This is some dumb shit tbh, I'm sure there is a good reason this shape is
   # required but fuck me it's annoying

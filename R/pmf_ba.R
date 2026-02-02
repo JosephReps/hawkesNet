@@ -98,22 +98,29 @@ validate_edges_ba <- function(edges_k, arrival_k, old_nodes) {
   list(new_end = new_end, old_end = old_end)
 }
 
-
-#' Log PMF of the BA mark kernel (Bernoulli-product form) for one event
+#' Log PMF of the BA mark kernel for one event
 #'
-#' Computes the log probability of the observed edge set `edges_k` under the
-#' Barabási–Albert (BA) **Bernoulli-product** mark model, for a single event at
-#' time `t_k`. See `sim_mark_ba()` for the corresponding simulator.
+#' Computes the log probability of the observed new–old edge set (`new_edges`)
+#' under the Barabási–Albert (BA) Bernoulli-product mark model at event time
+#' `t_k`. Returns both the per-old-node attachment probabilities and the log PMF.
 #'
-#' @param state Pre-event state (see `state_init()`). Must include named `deg` and `born`.
-#' @param arrival_k Node ID of the node arriving at time `t_k`.
-#' @param edges_k A data.frame with columns `i` and `j` giving observed undirected
-#'   edges at time `t_k`. May be a 0-row data.frame.
-#' @param t_k Numeric scalar event time.
-#' @param beta_edges Nonnegative scalar controlling exponential ageing in the
-#'   attachment weights.
+#' @inheritParams new-event-params
+#' @param params Named list of model parameters. Must contain `beta_edges`.
+#' @param delta Nonnegative scalar added for numerical stability in attachment
+#'   probabilities (passed to `edge_probs_ba()`).
 #'
-#' @return A numeric scalar: log probability of `edges_k` under the BA mark model.
+#' @return A list with:
+#' \describe{
+#'   \item{edge_probs}{Named numeric vector of attachment probabilities for each
+#'   eligible existing (old) node.}
+#'   \item{logp}{Scalar log probability of the observed edges for this event.}
+#' }
+#'
+#' @details
+#' The BA mark model assumes exactly one arriving node in `new_nodes`. Edges in
+#' `new_edges` are treated as new–old attachments; if there are no existing nodes
+#' in `net`, the only valid observation is `new_edges` empty.
+#'
 #' @export
 log_pmf_ba <- function(net,
                        new_nodes,

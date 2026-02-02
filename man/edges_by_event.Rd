@@ -7,14 +7,18 @@
 edges_by_event(events)
 }
 \arguments{
-\item{events}{An `hg_events` object (from `as_events()` or `make_events()`).}
+\item{events}{An events object created by `make_events()`.}
 }
 \value{
-A list of length `nrow(events$times)`. Element `[[k]]` is a data.frame
-  with columns `i, j` (and any additional edge attributes such as `etype`, `w`,
-  etc.) for event `k`. Events with zero edges return a 0-row data.frame with
-  the same columns (minus `event_id`).
+A list with one element per event. Element `[[k]]` is a data.frame of
+  edges for event `k` with columns `i` and `j` (plus any additional edge
+  attributes), excluding `event_id`. Events with zero edges return a 0-row
+  data.frame with the same columns.
 }
 \description{
 Split edges into per-event batches
+}
+\details{
+Edge endpoints `i` and `j` are coerced to character, and rows with missing or
+empty endpoints are dropped.
 }

@@ -1,13 +1,3 @@
-# Custom Kernel PMF
-
-If you want to add your own custom kernel PMF, I put together a rough "skeleton".
-
-I will eventually add some custom-kernel tests to validate whether a new kernel
-is truly a PMF.
-
-Once you've written it, you just need to update the likelihood function, see below.
-
-```{r eval = FALSE}
 #' Template: log PMF for a mark kernel (one event)
 #'
 #' This is a minimal skeleton for implementing a custom mark kernel. A mark
@@ -21,8 +11,7 @@ Once you've written it, you just need to update the likelihood function, see bel
 #' @param new_edges data.frame with at least columns "i" and "j". Any additional
 #'                  columns will be treated as edge attributes.
 #' @param t_k numeric scalar, the event timestamp
-#' @param params Named list of model parameters (kernel-specific, any others will be 
-#'                  ignored).
+#' @param params Named list of model parameters (kernel-specific, any others will be ignored).
 #' @param ... Optional kernel-specific arguments (e.g. tuning constants, caches).
 #'
 #' @return A list with:
@@ -55,9 +44,8 @@ custom_pmf <- function(
   # I think it would be hygiene to create a separate "validate_custom...()"
   # but you could just throw it all in here.
 
-  # Alter these to include your expected columns
-  stopifnot(is.data.frame(new_edges), all(c("i", "j") %in% names(new_edges))) 
-  stopifnot(is.data.frame(new_nodes), all(c("id") %in% names(new_nodes))) 
+  stopifnot(is.data.frame(new_edges), all(c("i", "j") %in% names(new_edges))) # Alter this to include your expected columns
+  stopifnot(is.data.frame(new_nodes), all(c("id") %in% names(new_nodes))) # Alter this to include your expected columns
 
   # Next I would cover your edge cases & compute edge-candidates, e.g
   #     - There are no existing nodes in the network
@@ -76,33 +64,3 @@ custom_pmf <- function(
       )
     )
 }
-```
-
-And updating the likelihood function:
-
-```{r eval = FALSE}
-  #...
-  event_times <- events$times$t
-  if (length(event_times) == 0L) return(0)
-
-  if (is.null(T_end)) T_end <- max(event_times)
-  if (T_end < max(event_times)) stop("T_end must be >= max event time")
-
-  # Mark kernel dispatch
-  if (mark_type == "ba") {
-    mark_logpmf <- log_pmf_ba
-  } else if (mark_type == "ba_bip") {
-    mark_logpmf <- log_pmf_ba_bip
-  } else if (mark_type == "cs") {
-    mark_logpmf <- log_pmf_cs
-  } else if (mark_type == "YOUR CUSTOM PMF GOES HERE") { # ADD THESE LINES
-    mark_logpmf <- YOUR_CUSTOM_PMF_FUNCTION # ADD THESE LINES
-  } else {
-    stop("mark_type must be one of 'ba', 'cs', 'ba_bip', 'YOUR_CUSTOM_PMF'")
-  }
-  # ...
-```
-
-:::callout-note
-Yes definitely a better way to do this, just a temporary solution for now.
-:::

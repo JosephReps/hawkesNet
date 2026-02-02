@@ -93,6 +93,28 @@
     ]
   },
   {
+    "objectID": "custom_pmf.html",
+    "href": "custom_pmf.html",
+    "title": "9  Custom Kernel PMF",
+    "section": "",
+    "text": "If you want to add your own custom kernel PMF, I put together a rough “skeleton”.\nI will eventually add some custom-kernel tests to validate whether a new kernel is truly a PMF.\nOnce you’ve written it, you just need to update the likelihood function, see below.\n\n#' Template: log PMF for a mark kernel (one event)\n#'\n#' This is a minimal skeleton for implementing a custom mark kernel. A mark\n#' kernel assigns a probability to the observed edge set for a single event at\n#' time `t_k`, conditional on the pre-event network `net` and the event mark\n#' (`new_nodes`, `new_edges`).\n#'\n#' @param net network object, the current network at time t_k\n#' @param new_nodes data.frame with at least column \"id\". Any additional\n#'                  columns will be treated as vertex attributes.\n#' @param new_edges data.frame with at least columns \"i\" and \"j\". Any additional\n#'                  columns will be treated as edge attributes.\n#' @param t_k numeric scalar, the event timestamp\n#' @param params Named list of model parameters (kernel-specific, any others will be \n#'                  ignored).\n#' @param ... Optional kernel-specific arguments (e.g. tuning constants, caches).\n#'\n#' @return A list with:\n#' \\describe{\n#'   \\item{logp}{Scalar log probability of observing `new_edges` (and any other\n#'   mark components) at this event.}\n#'   \\item{edge_probs}{Named numeric vector (or matrix) of attachment\n#'   probabilities for eligible targets. This is returned for debugging /\n#'   diagnostics and may be `NULL` if not meaningful for the kernel.}\n#'   \\item{model_cache}{Optional updated cache object (useful for expensive mark\n#'   models). Include only if you accept/use a cache via `...`.}\n#' }\n#'\n#' @examples\n#' # See log_pmf_ba() for a working implementation.\ncustom_pmf &lt;- function(\n    net,\n    new_nodes,\n    new_edges,\n    t_k,\n    params,\n    ...\n) {\n  stopifnot(inherits(net, \"network\"))\n  stopifnot(length(t_k) == 1L, is.numeric(t_k), is.finite(t_k))\n\n  # Validate your input here, eg:\n  #     - check parameter values are appropriate1\n  #     - check new_nodes and new_edges are possible under the kernel specs\n  # I think it would be hygiene to create a separate \"validate_custom...()\"\n  # but you could just throw it all in here.\n\n  # Alter these to include your expected columns\n  stopifnot(is.data.frame(new_edges), all(c(\"i\", \"j\") %in% names(new_edges))) \n  stopifnot(is.data.frame(new_nodes), all(c(\"id\") %in% names(new_nodes))) \n\n  # Next I would cover your edge cases & compute edge-candidates, e.g\n  #     - There are no existing nodes in the network\n  #     - There are existing nodes, but no elgible edge-candidates\n\n  # And then finally, compute the actual edge probabilities\n  edge_probs &lt;- calculate_custom_edge_probs(net, t_k, params)\n\n  # Placeholder\n  logp &lt;- NA_real_\n\n  return(\n    list(\n      logp = as.numeric(logp),\n      edge_probs = edge_probs\n      )\n    )\n}\n\nAnd updating the likelihood function:\n\n  #...\n  event_times &lt;- events$times$t\n  if (length(event_times) == 0L) return(0)\n\n  if (is.null(T_end)) T_end &lt;- max(event_times)\n  if (T_end &lt; max(event_times)) stop(\"T_end must be &gt;= max event time\")\n\n  # Mark kernel dispatch\n  if (mark_type == \"ba\") {\n    mark_logpmf &lt;- log_pmf_ba\n  } else if (mark_type == \"ba_bip\") {\n    mark_logpmf &lt;- log_pmf_ba_bip\n  } else if (mark_type == \"cs\") {\n    mark_logpmf &lt;- log_pmf_cs\n  } else if (mark_type == \"YOUR CUSTOM PMF GOES HERE\") { # ADD THESE LINES\n    mark_logpmf &lt;- YOUR_CUSTOM_PMF_FUNCTION # ADD THESE LINES\n  } else {\n    stop(\"mark_type must be one of 'ba', 'cs', 'ba_bip', 'YOUR_CUSTOM_PMF'\")\n  }\n  # ...\n\n\n\n\n\n\n\nNote\n\n\n\nYes definitely a better way to do this, just a temporary solution for now.",
+    "crumbs": [
+      "Custom kernels",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Custom Kernel PMF</span>"
+    ]
+  },
+  {
+    "objectID": "custom_sim.html",
+    "href": "custom_sim.html",
+    "title": "10  Custom Kernel Simulation",
+    "section": "",
+    "text": "Work in progress, template will be done soon.",
+    "crumbs": [
+      "Custom kernels",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Custom Kernel Simulation</span>"
+    ]
+  },
+  {
     "objectID": "crime_data.html",
     "href": "crime_data.html",
     "title": "11  Crime data",

@@ -1,10 +1,16 @@
 #' Split edges into per-event batches
 #'
-#' @param events An `hg_events` object (from `as_events()` or `make_events()`).
-#' @return A list of length `nrow(events$times)`. Element `[[k]]` is a data.frame
-#'   with columns `i, j` (and any additional edge attributes such as `etype`, `w`,
-#'   etc.) for event `k`. Events with zero edges return a 0-row data.frame with
-#'   the same columns (minus `event_id`).
+#' @param events An events object created by `make_events()`.
+#'
+#' @return A list with one element per event. Element `[[k]]` is a data.frame of
+#'   edges for event `k` with columns `i` and `j` (plus any additional edge
+#'   attributes), excluding `event_id`. Events with zero edges return a 0-row
+#'   data.frame with the same columns.
+#'
+#' @details
+#' Edge endpoints `i` and `j` are coerced to character, and rows with missing or
+#' empty endpoints are dropped.
+#'
 #' @export
 edges_by_event <- function(events) {
   validate_events(events)

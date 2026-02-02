@@ -6,6 +6,8 @@ project:
 book:
   title: "hawkesNet"
   subtitle: "A tutorial for Hawkes network growth models"
+  sidebar:
+    logo: mini_BA_logo.png
   chapters:
     - index.qmd
     - package_structure.qmd

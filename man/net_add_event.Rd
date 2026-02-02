@@ -4,16 +4,18 @@
 \alias{net_add_event}
 \title{Add one event to the network (nodes, then edges)}
 \usage{
-net_add_event(net, new_nodes, new_edges, t)
+net_add_event(net, new_nodes, new_edges, t_k)
 }
 \arguments{
-\item{net}{network object}
+\item{net}{network object, the current network at time t_k}
 
-\item{new_nodes}{data.frame of nodes to add (must have id; may have role)}
+\item{new_nodes}{data.frame with at least column "id". Any additional
+columns will be treated as vertex attributes.}
 
-\item{new_edges}{data.frame of edges to add (must have i, j; may have attrs)}
+\item{new_edges}{data.frame with at least columns "i" and "j". Any additional
+columns will be treated as edge attributes.}
 
-\item{t}{numeric scalar time}
+\item{t_k}{numeric scalar, the event timestamp}
 }
 \value{
 updated network object

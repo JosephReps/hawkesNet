@@ -23,23 +23,31 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
   mu * dt + (K / beta) * S_post_prev * (1 - exp(-beta * dt))
 }
 
-#' Title
+#' Log-likelihood for a HawkesNet model
 #'
-#' @param events
-#' @param params
-#' @param T_end
-#' @param T0
-#' @param mark_type
-#' @param net_init_fun
-#' @param net0
-#' @param net_step_fun
-#' @param debug
-#' @param ...
+#' Computes the log-likelihood for the observed event sequence under an
+#' exponential temporal Hawkes kernel and a chosen mark model (`mark_type`).
 #'
-#' @return
+#' @inheritParams hawkesnet-lik-args
+#' @param params Named list of model parameters on the natural scale. Must
+#'   contain `mu`, `K`, and `beta`, plus any mark parameters required by
+#'   `mark_type` (e.g. `beta_edges` for BA).
+#' @param net_init_fun Function to initialize the pre-event network if `net0` is
+#'   `NULL`. Defaults to `net_init`.
+#' @param net0 Optional initial network object to start recursion from.
+#' @param net_step_fun Function used to update the network after each event.
+#'   Defaults to `net_add_event`.
+#'
+#' @return A numeric scalar log-likelihood. Returns `-Inf` for invalid parameter
+#'   values or if the likelihood is undefined.
+#'
 #' @export
 #'
 #' @examples
+#' set.seed(1)
+#' params_true <- list(mu = 0.5, K = 0.5, beta = 0.5, beta_edges = 2)
+#' sim <- sim_hawkesNet(params = params_true, T_end = 10, mark_type = "ba")
+#' loglik(sim$ev, params_true, mark_type = "ba")
 loglik <- function(
     events, params, T_end = NULL, T0 = 0,
     mark_type = "ba",

@@ -1,24 +1,21 @@
-#' Title
+#' Add edges to the network object
 #'
-#' @param net
-#' @param new_edges data.frame with at least columns "i" and "j". Any additional
-#'                  columns will be treated as edge attributes.
-#' @param t
+#' @inheritParams new-event-params
 #'
-#' @return Updated `network` object.
+#' @return Updated `network` object
 #' @export
 #'
 #' @examples
 #' # net <- network::network.initialize(0, directed = FALSE)
-#' # net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t=0)
-#' # net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t=0.5)
-net_add_edges <- function(net, new_edges, t) {
+#' # net <- net_add_nodes(net, data.frame(id=c("a","b"), stringsAsFactors=FALSE), t_k=0)
+#' # net <- net_add_edges(net, data.frame(i="a", j="b", w=1), t_k=0.5)
+net_add_edges <- function(net, new_edges, t_k) {
   # Input validation
   if (!inherits(net, "network")) {
     stop("net_add_edges(): net must be a 'network' object.", call. = FALSE)
   }
-  if (!(is.numeric(t) && length(t) == 1L && is.finite(t))) {
-    stop("net_add_edges(): t must be a single finite numeric.", call. = FALSE)
+  if (!(is.numeric(t_k) && length(t_k) == 1L && is.finite(t_k))) {
+    stop("net_add_edges(): t_k must be a single finite numeric.", call. = FALSE)
   }
   if (!is.data.frame(new_edges)) {
     stop("net_add_edges(): new_edges must be a data.frame", call. = FALSE)
@@ -94,7 +91,7 @@ net_add_edges <- function(net, new_edges, t) {
 
   # Add a default time attribute unless user provided one already
   if (!("time" %in% attr_cols)) {
-    network::set.edge.attribute(net, attrname = "time", value = rep(t, m), e = new_eids)
+    network::set.edge.attribute(net, attrname = "time", value = rep(t_k, m), e = new_eids)
   }
 
   # Set any additional attributes (including user-provided 't', 'weight', etc.)

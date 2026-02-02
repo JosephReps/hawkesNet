@@ -2,7 +2,7 @@
 % Please edit documentation in R/loglik.R
 \name{loglik}
 \alias{loglik}
-\title{Title}
+\title{Log-likelihood for a HawkesNet model}
 \usage{
 loglik(
   events,
@@ -18,8 +18,43 @@ loglik(
 )
 }
 \arguments{
-\item{...}{}
+\item{events}{An events object created by `make_events()`.}
+
+\item{params}{Named list of model parameters on the natural scale. Must
+contain `mu`, `K`, and `beta`, plus any mark parameters required by
+`mark_type` (e.g. `beta_edges` for BA).}
+
+\item{T_end}{Optional end time for the likelihood window. Defaults to the
+last event time.}
+
+\item{T0}{Start time for the likelihood window.}
+
+\item{mark_type}{One of `"ba"`, `"cs"`, `"ba_bip"`.}
+
+\item{debug}{Logical; enable debug plotting (interactive; will pause each event).}
+
+\item{net_init_fun}{Function to initialize the pre-event network if `net0` is
+`NULL`. Defaults to `net_init`.}
+
+\item{net0}{Optional initial network object to start recursion from.}
+
+\item{net_step_fun}{Function used to update the network after each event.
+Defaults to `net_add_event`.}
+
+\item{...}{Additional arguments forwarded to the mark PMF / edge-probability
+functions (e.g. `delta`, `model_cache`, etc.).}
+}
+\value{
+A numeric scalar log-likelihood. Returns `-Inf` for invalid parameter
+  values or if the likelihood is undefined.
 }
 \description{
-Title
+Computes the log-likelihood for the observed event sequence under an
+exponential temporal Hawkes kernel and a chosen mark model (`mark_type`).
+}
+\examples{
+set.seed(1)
+params_true <- list(mu = 0.5, K = 0.5, beta = 0.5, beta_edges = 2)
+sim <- sim_hawkesNet(params = params_true, T_end = 10, mark_type = "ba")
+loglik(sim$ev, params_true, mark_type = "ba")
 }

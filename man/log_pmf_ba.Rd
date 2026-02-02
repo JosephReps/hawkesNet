@@ -2,28 +2,41 @@
 % Please edit documentation in R/pmf_ba.R
 \name{log_pmf_ba}
 \alias{log_pmf_ba}
-\title{Log PMF of the BA mark kernel (Bernoulli-product form) for one event}
+\title{Log PMF of the BA mark kernel for one event}
 \usage{
 log_pmf_ba(net, new_nodes, new_edges, t_k, params, delta = 0.001)
 }
 \arguments{
-\item{t_k}{Numeric scalar event time.}
+\item{net}{network object, the current network at time t_k}
 
-\item{state}{Pre-event state (see `state_init()`). Must include named `deg` and `born`.}
+\item{new_nodes}{data.frame with at least column "id". Any additional
+columns will be treated as vertex attributes.}
 
-\item{arrival_k}{Node ID of the node arriving at time `t_k`.}
+\item{new_edges}{data.frame with at least columns "i" and "j". Any additional
+columns will be treated as edge attributes.}
 
-\item{edges_k}{A data.frame with columns `i` and `j` giving observed undirected
-edges at time `t_k`. May be a 0-row data.frame.}
+\item{t_k}{numeric scalar, the event timestamp}
 
-\item{beta_edges}{Nonnegative scalar controlling exponential ageing in the
-attachment weights.}
+\item{params}{Named list of model parameters. Must contain `beta_edges`.}
+
+\item{delta}{Nonnegative scalar added for numerical stability in attachment
+probabilities (passed to `edge_probs_ba()`).}
 }
 \value{
-A numeric scalar: log probability of `edges_k` under the BA mark model.
+A list with:
+\describe{
+  \item{edge_probs}{Named numeric vector of attachment probabilities for each
+  eligible existing (old) node.}
+  \item{logp}{Scalar log probability of the observed edges for this event.}
+}
 }
 \description{
-Computes the log probability of the observed edge set `edges_k` under the
-Barabási–Albert (BA) **Bernoulli-product** mark model, for a single event at
-time `t_k`. See `sim_mark_ba()` for the corresponding simulator.
+Computes the log probability of the observed new–old edge set (`new_edges`)
+under the Barabási–Albert (BA) Bernoulli-product mark model at event time
+`t_k`. Returns both the per-old-node attachment probabilities and the log PMF.
+}
+\details{
+The BA mark model assumes exactly one arriving node in `new_nodes`. Edges in
+`new_edges` are treated as new–old attachments; if there are no existing nodes
+in `net`, the only valid observation is `new_edges` empty.
 }

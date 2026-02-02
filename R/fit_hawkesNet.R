@@ -1,23 +1,76 @@
-#' Title
+#' Fit a HawkesNet model by maximum likelihood
 #'
-#' @param events
-#' @param params_init
-#' @param fixed_params
-#' @param transform
-#' @param hessian
-#' @param control
-#' @param ...
+#' @param events An events object created by `make_events()`.
+#' @param params_init Named list of starting values for all model parameters.
+#'   Must include the parameters required by the chosen `mark_type` (and any
+#'   baseline/intensity parameters used by `loglik()`).
+#' @param fixed_params Character vector of parameter names to hold fixed at
+#'   their `params_init` values.
+#' @param transform Named character vector giving the working-scale transform
+#'   for each parameter in `params_init` (e.g. `"log"`). Missing entries default
+#'   to `"log"`. If `NULL`, all parameters default to `"log"`.
+#' @param hessian Logical; if `TRUE`, return the Hessian from `optim()`.
+#' @param control List of control arguments passed to [stats::optim()].
+#' @param mark_type One of `"ba"`, `"cs"`, `"ba_bip"`.
+#' @param debug Logical; enable debug mode (passed through to likelihood/mark
+#'   components where supported).
+#' @param T_end Optional end time for the likelihood window.
+#' @param T0 Start time for the likelihood window.
+#' @param ... Additional arguments forwarded to the mark PMF / edge-probability
+#'   functions used inside `loglik()`.
 #'
-#' @return
-#' @export
+#' @return A list with components:
+#' \describe{
+#'   \item{fit}{The `optim()` result (or `NULL` if all parameters are fixed).}
+#'   \item{par}{Named list of parameter estimates on the natural scale.}
+#'   \item{loglik}{Log-likelihood at `par`.}
+#'   \item{convergence}{`optim()` convergence code.}
+#'   \item{message}{`optim()` message (if any).}
+#'   \item{hessian}{Hessian matrix (only if `hessian = TRUE`).}
+#' }
 #'
 #' @examples
+#' set.seed(1)
+#'
+#' params_true <- list(
+#'   mu = 0.5,
+#'   K = 0.5,
+#'   beta = 0.5,
+#'   beta_edges = 2
+#' )
+#'
+#' sim <- sim_hawkesNet(
+#'   params = params_true,
+#'   T_end = 10,
+#'   mark_type = "ba"
+#' )
+#'
+#' params_init <- list(
+#'   mu = 1,
+#'   K = 1,
+#'   beta = 1,
+#'   beta_edges = 1
+#' )
+#'
+#' fit <- fit_hawkesNet(
+#'   events = sim$ev,
+#'   params_init = params_init,
+#'   mark_type = "ba"
+#' )
+#'
+#' fit$par
+#'
+#' @export
 fit_hawkesNet <- function(events,
                           params_init,
                           fixed_params = NULL,
                           transform = NULL,
                           hessian = FALSE,
                           control = list(),
+                          mark_type = "ba",
+                          debug = FALSE,
+                          T_end = NULL,
+                          T0 = 0,
                           ...
                           ) {
   # 0) Input validation
