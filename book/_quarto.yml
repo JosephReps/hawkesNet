@@ -8,7 +8,6 @@ book:
   subtitle: "A tutorial for Hawkes network growth models"
   chapters:
     - index.qmd
-    - intro.qmd
     - package_structure.qmd
     - events.qmd
     - simulation.qmd

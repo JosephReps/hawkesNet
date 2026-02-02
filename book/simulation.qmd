@@ -55,9 +55,10 @@ plot(sim$net)
 ```
 
 :::callout-tip
-Notice that all the vertex attributes are preserved. Also supports edge 
-attributes if custom kernels are written which utilize these later i.e. weighted
-edges, toggleable edges etc.
+All the vertex attributes are preserved. Additionally, edge 
+attributes are supported, so if custom kernels are written which utilize 
+these later i.e. weighted edges, toggle-able edges etc., the current framework
+does not eed to change.
 :::
 
 `ev` which is the `hg_events` object which can be plugged directly into `fit_hawkesNet()`.

@@ -18,7 +18,7 @@ edge_probs_ba <- function(net, t_k, beta_edges = 0.5, delta = 0.001) {
 
   # Normalizing term
   W <- sum(w)
-  if (!is.finite(W) || W <= 0) {
+  if (!is.finite(W) || W <= 0) {e
     stop("Invalid BA weights: sum(weights) must be > 0.", call. = FALSE)
   }
 

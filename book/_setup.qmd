@@ -15,4 +15,6 @@ library(network)
 library(sna)
 library(withr)
 library(ernm)
+library(knitr)
+library(kableExtra)
 ```

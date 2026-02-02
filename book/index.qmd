@@ -1,5 +1,13 @@
+![](BA example.png)
+
 # Preface {.unnumbered}
 
-This is a Quarto book. (On chud)
+[Skip straight to examples.](examples_ba.html)
 
-To learn more about Quarto books visit <https://quarto.org/docs/books>.
+Put together this e-book to hopefully make it easier for you guys to get 
+familiar with the new package structure.
+
+This is only a very early construction, and basically any feedback I receive 
+will be implemented in the future.
+
+

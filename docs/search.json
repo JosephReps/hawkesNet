@@ -4,124 +4,114 @@
     "href": "index.html",
     "title": "hawkesNet",
     "section": "",
-    "text": "Preface\nThis is a Quarto book. (On chud)\nTo learn more about Quarto books visit https://quarto.org/docs/books.",
+    "text": "Preface\nSkip straight to examples.\nPut together this e-book to hopefully make it easier for you guys to get familiar with the new package structure.\nThis is only a very early construction, and basically any feedback I receive will be implemented in the future.",
     "crumbs": [
       "Preface"
     ]
   },
   {
-    "objectID": "intro.html",
-    "href": "intro.html",
-    "title": "1  Introduction",
-    "section": "",
-    "text": "This is a book created from markdown and executable code.\nSee @knuth84 for additional discussion of literate programming.",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
-    ]
-  },
-  {
     "objectID": "package_structure.html",
     "href": "package_structure.html",
-    "title": "2  Package Structure",
+    "title": "1  Package Structure",
     "section": "",
-    "text": "Same structure as the original repo, however you now provide the events data directly, rather than converting it to a network beforehand.\nSee:\n \nSo plug data into make_events(), choose a kernel and you’re good.\nNow, you could argue that the make_events() shouldn’t be exposed to the user, and that it should happen internally. IDK I kind of like seeing how the events are structured.\nAlso how do we feel in general about providing data as data frames rather than networks? To me it feels much more natural, and it is much easier to work with the original data frames than trying to make changes using the network functions.\nAlso I believe in the legacy code, edge less node arrivals were not supported in the events_to_net() function, as it only took edges as an argument.",
+    "text": "Same structure as the original repo, however you now provide the events data directly, rather than converting it to a network beforehand.\nSee following:\n\n\n\nCurrent package pipeline, subject to changes.\n\n\nSo plug data into make_events(), choose a kernel and you’re good.\nNow, you could argue that the make_events() shouldn’t be exposed to the user, and that it should happen internally. IDK I kind of like seeing how the events are structured.\nAlso how do we feel in general about providing data as data frames rather than networks? To me it feels much more natural, and it is much easier to work with the original data frames than trying to make changes using the network functions.\nAlso I believe in the legacy code, edge less node arrivals were not supported in the events_to_net() function, as it only took edges as an argument.",
     "crumbs": [
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Package Structure</span>"
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Package Structure</span>"
     ]
   },
   {
     "objectID": "events.html",
     "href": "events.html",
-    "title": "3  Events",
+    "title": "2  Events",
     "section": "",
-    "text": "So as stated, shifted from providing a network, to providing raw event data. Opinions?\nExample:\n\nnodes &lt;- data.frame(\n  id   = c(\"1\", \"2\", \"3\"),\n  time = c(0, 1, 2)\n)\nedges &lt;- data.frame(\n  i    = c(\"1\", \"1\"),\n  j    = c(\"2\", \"3\"),\n  time = c(1, 2)\n)\n\nev &lt;- make_events(nodes = nodes, edges = edges)\nev\n\n$times\n  event_id t\n1        1 0\n2        2 1\n3        3 2\n\n$nodes\n  event_id id\n1        1  1\n2        2  2\n3        3  3\n\n$edges\n  event_id i j\n1        2 1 2\n2        3 1 3\n\nattr(,\"class\")\n[1] \"hg_events\" \"list\"     \n\n\nIn the case you only have edges, the make_events() function will implicitly generate the nodes as they appear in edges. Note this is assuming that nodes join the network at the first time in which they appear in edges.\n\nedges &lt;- data.frame(\n  i    = c(\"1\", \"1\"),\n  j    = c(\"2\", \"3\"),\n  time = c(1, 2)\n)\n\nhawkesNet::make_events(edges = edges)\n\n$times\n  event_id t\n1        1 1\n2        2 2\n\n$nodes\n     event_id id\nNA          1  1\nNA.1        1  2\nNA.2        2  3\n\n$edges\n  event_id i j\n1        1 1 2\n2        2 1 3\n\nattr(,\"class\")\n[1] \"hg_events\" \"list\"     \n\n\nThere are also two useful helpers for working with events, edges_by_event() and nodes_by_event():\n\nedges_by_event(ev)\n\n[[1]]\n[1] i j\n&lt;0 rows&gt; (or 0-length row.names)\n\n[[2]]\n  i j\n1 1 2\n\n[[3]]\n  i j\n1 1 3\n\nnodes_by_event(ev)\n\n[[1]]\n  id\n1  1\n\n[[2]]\n  id\n1  2\n\n[[3]]\n  id\n1  3",
+    "text": "So as stated, shifted from providing a network, to providing raw event data. Opinions?\nExample:\n\nnodes &lt;- data.frame(\n  id   = c(\"1\", \"2\", \"3\"),\n  time = c(0, 1, 2)\n)\nedges &lt;- data.frame(\n  i    = c(\"1\", \"1\"),\n  j    = c(\"2\", \"3\"),\n  time = c(1, 2)\n)\n\nev &lt;- make_events(nodes = nodes, edges = edges)\n\n\n\n\n\n\nEvent times\n\n\nevent_id\nt\n\n\n\n\n1\n0\n\n\n2\n1\n\n\n3\n2\n\n\n\n\n\n\n\n\n\nNode arrivals\n\n\nevent_id\nid\n\n\n\n\n1\n1\n\n\n2\n2\n\n\n3\n3\n\n\n\n\n\n\n\n\n\nEdge arrivals\n\n\nevent_id\ni\nj\n\n\n\n\n2\n1\n2\n\n\n3\n1\n3\n\n\n\n\n\n\n\nIn the case you only have edges, the make_events() function will implicitly generate the nodes as they appear in edges. Note this is assuming that nodes join the network at the first time in which they appear in edges.\n\nedges_example &lt;- data.frame(\n  i    = c(\"1\", \"1\"),\n  j    = c(\"2\", \"3\"),\n  time = c(1, 2)\n)\n\nevents_from_edges &lt;- make_events(edges = edges_example)\n\n\n\n\n\n\nEvent times\n\n\nevent_id\nt\n\n\n\n\n1\n1\n\n\n2\n2\n\n\n\n\n\n\n\n\n\nNode arrivals\n\n\n\nevent_id\nid\n\n\n\n\nNA\n1\n1\n\n\nNA.1\n1\n2\n\n\nNA.2\n2\n3\n\n\n\n\n\n\n\n\n\nEdge arrivals\n\n\nevent_id\ni\nj\n\n\n\n\n1\n1\n2\n\n\n2\n1\n3\n\n\n\n\n\n\n\nThere are also two useful helpers for working with events, edges_by_event() and nodes_by_event():\n\nedges_per_event &lt;- edges_by_event(ev)\nnodes_per_event &lt;- nodes_by_event(ev)\n\n\n\n\n\n\nEvent 1 Edges\n\n\ni\nj\n\n\n\n\n\n\n\n\n\n\n\nEvent 2 Edges\n\n\ni\nj\n\n\n\n\n1\n2\n\n\n\n\n\n\n\n\n\nEvent 2 Edges\n\n\ni\nj\n\n\n\n\n1\n3\n\n\n\n\n\n\n\n\n\n\n\n\nEvent 1 Nodes\n\n\nid\n\n\n\n\n1\n\n\n\n\n\n\n\n\n\nEvent 2 Nodes\n\n\nid\n\n\n\n\n2\n\n\n\n\n\n\n\n\n\nEvent 2 Nodes\n\n\nid\n\n\n\n\n3\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nNo edges in first event, sorry looks messy, need to fix.",
     "crumbs": [
-      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Events</span>"
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Events</span>"
     ]
   },
   {
     "objectID": "simulation.html",
     "href": "simulation.html",
-    "title": "4  Simulation",
+    "title": "3  Simulation",
     "section": "",
-    "text": "Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS).\nThe algorithm used is the same, except the upper bound for thinning is recalculated after each event, rather than at the very beginning, which makes it slightly more efficient, and means you don’t have to worry about setting a valid mu_multiplier value.\nExample:\n\nset.seed(1)\n\nparams_ba &lt;- list(\n  mu = 2,\n  K = 0.5,\n  beta = 0.8,\n  beta_edges = 0.5\n)\n\ntime &lt;- 5\n\nsim &lt;- sim_hawkesNet(\n  params = params_ba,\n  T_end = time,\n  return_ev = TRUE,\n  debug = FALSE,\n  mark_type = \"ba\"\n)\n\n[1] \"Simulation took 0.14 seconds\"\n\nnames(sim)\n\n[1] \"events\"       \"accept_probs\" \"ev\"           \"net\"         \n\n\nLooking at the output.\nevents contains the times and number of total events simulated:\n\nsim$events\n\n$n\n[1] 22\n\n$t\n [1] 0.3775909 0.4504443 0.6357547 1.2696058 1.4247319 1.5209317 1.8195977\n [8] 2.4765490 2.6199033 2.7111106 2.7712502 3.0028158 3.2289452 3.4861193\n[15] 3.9594114 4.1439052 4.3469041 4.3969257 4.5448436 4.5943761 4.7734668\n[22] 4.9298905\n\n\naccept_probs contains the acceptance probabilities of each event:\n\nsim$accept_probs\n\n [1] 1.0000000 1.2358458 1.1481242 0.9886842 1.1238954 1.1197264 1.0193665\n [8] 0.9005026 1.0960620 1.1000923 1.0989982 1.0063711 1.0076248 0.9928947\n[15] 0.9097591 1.0421951 1.0268910 1.0935040 1.0333602 1.0784932 1.0029862\n[22] 1.0138147\n\n\nnet is the final network created from the events:\n\nplot(sim$net)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nNotice that all the vertex attributes are preserved. Also supports edge attributes if custom kernels are written which utilize these later i.e. weighted edges, toggleable edges etc.\n\n\nev which is the hg_events object which can be plugged directly into fit_hawkesNet().\n\nstr(sim$ev)\n\nList of 3\n $ times:'data.frame':  22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ t       : num [1:22] 0.378 0.45 0.636 1.27 1.425 ...\n $ nodes:'data.frame':  22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ id      : chr [1:22] \"1\" \"2\" \"3\" \"4\" ...\n $ edges:'data.frame':  21 obs. of  3 variables:\n  ..$ event_id: int [1:21] 2 3 3 6 6 7 8 9 10 10 ...\n  ..$ i       : chr [1:21] \"1\" \"1\" \"2\" \"1\" ...\n  ..$ j       : chr [1:21] \"2\" \"3\" \"3\" \"6\" ...\n - attr(*, \"class\")= chr [1:2] \"hg_events\" \"list\"",
+    "text": "Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS).\nThe algorithm used is the same, except the upper bound for thinning is recalculated after each event, rather than at the very beginning, which makes it slightly more efficient, and means you don’t have to worry about setting a valid mu_multiplier value.\nExample:\n\nset.seed(1)\n\nparams_ba &lt;- list(\n  mu = 2,\n  K = 0.5,\n  beta = 0.8,\n  beta_edges = 0.5\n)\n\ntime &lt;- 5\n\nsim &lt;- sim_hawkesNet(\n  params = params_ba,\n  T_end = time,\n  return_ev = TRUE,\n  debug = FALSE,\n  mark_type = \"ba\"\n)\n\n[1] \"Simulation took 0.16 seconds\"\n\nnames(sim)\n\n[1] \"events\"       \"accept_probs\" \"ev\"           \"net\"         \n\n\nLooking at the output.\nevents contains the times and number of total events simulated:\n\nsim$events\n\n$n\n[1] 22\n\n$t\n [1] 0.3775909 0.4504443 0.6357547 1.2696058 1.4247319 1.5209317 1.8195977\n [8] 2.4765490 2.6199033 2.7111106 2.7712502 3.0028158 3.2289452 3.4861193\n[15] 3.9594114 4.1439052 4.3469041 4.3969257 4.5448436 4.5943761 4.7734668\n[22] 4.9298905\n\n\naccept_probs contains the acceptance probabilities of each event:\n\nsim$accept_probs\n\n [1] 1.0000000 1.2358458 1.1481242 0.9886842 1.1238954 1.1197264 1.0193665\n [8] 0.9005026 1.0960620 1.1000923 1.0989982 1.0063711 1.0076248 0.9928947\n[15] 0.9097591 1.0421951 1.0268910 1.0935040 1.0333602 1.0784932 1.0029862\n[22] 1.0138147\n\n\nnet is the final network created from the events:\n\nplot(sim$net)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nAll the vertex attributes are preserved. Additionally, edge attributes are supported, so if custom kernels are written which utilize these later i.e. weighted edges, toggleable edges etc., the current framework does not eed to change.\n\n\nev which is the hg_events object which can be plugged directly into fit_hawkesNet().\n\nstr(sim$ev)\n\nList of 3\n $ times:'data.frame':  22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ t       : num [1:22] 0.378 0.45 0.636 1.27 1.425 ...\n $ nodes:'data.frame':  22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ id      : chr [1:22] \"1\" \"2\" \"3\" \"4\" ...\n $ edges:'data.frame':  21 obs. of  3 variables:\n  ..$ event_id: int [1:21] 2 3 3 6 6 7 8 9 10 10 ...\n  ..$ i       : chr [1:21] \"1\" \"1\" \"2\" \"1\" ...\n  ..$ j       : chr [1:21] \"2\" \"3\" \"3\" \"6\" ...\n - attr(*, \"class\")= chr [1:2] \"hg_events\" \"list\"",
     "crumbs": [
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Simulation</span>"
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Simulation</span>"
     ]
   },
   {
     "objectID": "model_fitting.html",
     "href": "model_fitting.html",
-    "title": "5  Model Fitting",
+    "title": "4  Model Fitting",
     "section": "",
     "text": "Model fitting UX is approximately the same, however you pass events rather than mark_filtration network object.\n\nstr(sim$ev)\n\nList of 3\n $ times:'data.frame':  22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ t       : num [1:22] 0.378 0.45 0.636 1.27 1.425 ...\n $ nodes:'data.frame':  22 obs. of  2 variables:\n  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...\n  ..$ id      : chr [1:22] \"1\" \"2\" \"3\" \"4\" ...\n $ edges:'data.frame':  21 obs. of  3 variables:\n  ..$ event_id: int [1:21] 2 3 3 6 6 7 8 9 10 10 ...\n  ..$ i       : chr [1:21] \"1\" \"1\" \"2\" \"1\" ...\n  ..$ j       : chr [1:21] \"2\" \"3\" \"3\" \"6\" ...\n - attr(*, \"class\")= chr [1:2] \"hg_events\" \"list\"\n\n\n\nparams_init &lt;- list(\n  mu = 5,\n  K = 0.3,\n  beta = 1,\n  beta_edges = 1\n)\n\nfit &lt;- fit_hawkesNet(\n    ev = sim$ev,\n    params_init = params_init,\n    mark_type = \"ba\"\n)\n\n[1] \"Fitting took 11.86 seconds\"\n\n\nAnd we can see the fitted values:\n\nfit$fit$par\n\n        mu          K       beta beta_edges \n  1.117204  -1.867828  -7.026871  -2.276224 \n\n\nInternally, the network is built incrementally event-by-event, for each iteration of the likelihood, rather than rebuilding the whole network up until that event, per-event.\nStill need to implement Duncan’s improvement which should make the model fitting lightning quick, as it means we only build the network object a SINGLE time, for the entire fitting process!\nFully list of arguments:\n\n# List arguments here, probably some package to make a neat table.",
     "crumbs": [
-      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Model Fitting</span>"
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Model Fitting</span>"
     ]
   },
   {
     "objectID": "tooling.html",
     "href": "tooling.html",
-    "title": "6  Tooling",
+    "title": "5  Tooling",
     "section": "",
     "text": "Package tooling i.e. debugging plots, ks-test etc.\nNow that I have implemented most of the base features, I will be able to add a bunch of QOL and tooling.\nRight now, I have made a visual debugger for the model fitting:\nTry setting debug = T when fitting a model.\n\n# Include debugger plot here\n\nWhat other info do you think it should display?\nAlso have KS testing / Network statistics plotting in the works.",
     "crumbs": [
-      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Tooling</span>"
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Tooling</span>"
     ]
   },
   {
     "objectID": "examples_ba.html",
     "href": "examples_ba.html",
-    "title": "7  BA Examples",
+    "title": "6  BA Examples",
     "section": "",
     "text": "Simulate BA data.\n\nset.seed(1)\n\ntime &lt;- 50\nparams_ba_true &lt;- list(\n  mu = 0.5,\n  K = 0.5,\n  beta = 0.5,\n  beta_edges = 2\n)\n\nsim &lt;- sim_hawkesNet(\n  params = params_ba_true,\n  T_end = time,\n  mark_type = \"ba\"\n)\n\n[1] \"Simulation took 0.72 seconds\"\n\n\n\nplot(sim$net)\n\n\n\n\n\n\n\n\n\nprint(paste(\"Number of simulated nodes:\", nrow(sim$ev$nodes)))\n\n[1] \"Number of simulated nodes: 236\"\n\npaste(\"Number of simulated edges:\", nrow(sim$ev$edges))\n\n[1] \"Number of simulated edges: 235\"\n\npaste(\"Number of simulated events:\", sim$events$n)\n\n[1] \"Number of simulated events: 236\"\n\n\n\n\n\n\n\n\nNote\n\n\n\nAfter tweaking with the parameters a bit, it seems that the number of edges is usually just directly proportional to the number of nodes. Is this a sign something is wrong?\n\n\nFit BA data.\n\nparams_ba_init &lt;- list(\n  mu = 1,\n  K = 1,\n  beta = 1,\n  beta_edges = 1\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = sim$ev,\n      params_init = params_ba_init,\n      mark_type = \"ba\"\n    )\n\n[1] \"Fitting took 86.9 seconds\"\n\n\nParameter values on the fitted scale:\n\nunlist(fit$par)\n\n        mu          K       beta beta_edges \n 0.8502838  0.4381081  0.4946193  2.0018328 \n\n\nNot too bad.\nAnd, we can also grab parameter values on the transformed scale:\n\n# Yes I know this is a jank way to structure it right now, will fix\nfit$fit$par\n\n        mu          K       beta beta_edges \n-0.1621852 -0.8252896 -0.7039668  0.6940632",
     "crumbs": [
       "Examples",
-      "<span class='chapter-number'>7</span>  <span class='chapter-title'>BA Examples</span>"
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>BA Examples</span>"
     ]
   },
   {
     "objectID": "examples_cs.html",
     "href": "examples_cs.html",
-    "title": "8  CS Examples",
+    "title": "7  CS Examples",
     "section": "",
     "text": "Simulate CS data.\n\nset.seed(1)\n\ntime &lt;- 5\nparams_cs_true &lt;- list(\n  mu = 5,\n  K = 0.5,\n  beta = 2,\n  beta_edges = 0.5,\n  node_lambda = 4,\n  # CS_edges = -2.5,\n  # CS_triangles = 0.001,\n  CS_star.2 = -1,\n  CS_star.3 = -3\n)\n\nsim &lt;- sim_hawkesNet(\n  params = params_cs_true,\n  T_end = time,\n  mark_type = \"cs\",\n  # formula_rhs = \"edges + triangles() + star(c(2,3))\",\n  formula_rhs = \"star(c(2,3))\"\n)\n\n[1] \"Simulation took 0.39 seconds\"\n\n\n\n\n\n\n\n\nNote\n\n\n\nNeed to discuss the triangles() parameter. I think the current calculation of change statistics for triangles is incorrect.\n\n\n\nplot(sim$net)\n\n\n\n\n\n\n\n\n\nprint(paste(\"Number of simulated nodes:\", nrow(sim$ev$nodes)))\n\n[1] \"Number of simulated nodes: 103\"\n\npaste(\"Number of simulated edges:\", nrow(sim$ev$edges))\n\n[1] \"Number of simulated edges: 133\"\n\npaste(\"Number of simulated events:\", sim$events$n)\n\n[1] \"Number of simulated events: 25\"\n\n\nFit CS data.\n\n\n\n\n\n\nTip\n\n\n\nMake sure to specify the transformation setting for the CS parameters.\nIdeally will default to correct value, but want to discuss how we are implementing the arguments, because lowk I like the old way of passing CS_params better.\n\n\n\nparams_cs_init &lt;- list(\n  mu = 3,\n  K = 1,\n  beta = 1,\n  beta_edges = 1,\n  node_lambda = 5,\n  # CS_edges = -2.5,\n  # CS_triangles = 0.001,\n  CS_star.2 = 0,\n  CS_star.3 = 0\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = sim$ev,\n      params_init = params_cs_init,\n      mark_type = \"cs\",\n      transform = list(CS_star.2 = \"none\", CS_star.3 = \"none\"),\n      formula_rhs = \"star(c(2,3))\"\n    )\n\n[1] \"Fitting took 74.73 seconds\"\n\n\nParameter values on the fitted scale:\n\nunlist(fit$par)\n\n         mu           K        beta  beta_edges node_lambda   CS_star.2 \n  3.8434437   1.2071197   4.6983466   0.2561687   4.1202448  -1.0297906 \n  CS_star.3 \n -3.1923367 \n\n\n\n\n\n\n\n\nNote\n\n\n\nYou might notice the estimates for beta and K are not great. I tried increasing time which didn’t help (actually made it worse?).\nWill definitely be doing some sensitivity testing / experimentation once I’ve implemented Duncan’s supercharged model fitting.\n\n\nParameter values on the transformed scale:\n\nfit$fit$par\n\n         mu           K        beta  beta_edges node_lambda   CS_star.2 \n  1.3463688   0.1882371   1.5472107  -1.3619189   1.4159126  -1.0297906 \n  CS_star.3 \n -3.1923367",
     "crumbs": [
       "Examples",
-      "<span class='chapter-number'>8</span>  <span class='chapter-title'>CS Examples</span>"
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>CS Examples</span>"
     ]
   },
   {
     "objectID": "examples_ba_bip.html",
     "href": "examples_ba_bip.html",
-    "title": "9  BA-Bipartite Examples",
+    "title": "8  BA-Bipartite Examples",
     "section": "",
     "text": "Simulate BIP-BA data.\n\nset.seed(1)\n\ntime &lt;- 10\nparams_bip_true &lt;- list(\n  mu = 0.5,\n  K = 0.5,\n  beta = 0.5,\n  beta_edges = 2,\n  lambda_new = 3.5\n)\n\nsim &lt;- sim_hawkesNet(\n  params = params_bip_true,\n  T_end = time,\n  mark_type = \"ba_bip\"\n)\n\n[1] \"Simulation took 0.25 seconds\"\n\n\n\n# Bipartite colouring\ncol_map &lt;- c(\n  event = \"#377EB8\",\n  perp  = \"#E41A1C\"\n)\nroles &lt;- network::get.vertex.attribute(sim$net, \"role\")\ncols &lt;- col_map[roles]\n\nplot(sim$net, vertex.col = cols)\n\n\n\n\n\n\n\n\n\nprint(paste(\"Number of simulated nodes:\", nrow(sim$ev$nodes)))\n\n[1] \"Number of simulated nodes: 142\"\n\npaste(\"Number of simulated edges:\", nrow(sim$ev$edges))\n\n[1] \"Number of simulated edges: 144\"\n\npaste(\"Number of simulated events:\", sim$events$n)\n\n[1] \"Number of simulated events: 35\"\n\n\nFit BIP-BA data.\n\nparams_bip_init &lt;- list(\n  mu = 1,\n  K = 1,\n  beta = 1,\n  beta_edges = 1,\n  lambda_new = 3.5\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = sim$ev,\n      params_init = params_bip_init,\n      mark_type = \"ba_bip\"\n    )\n\n[1] \"Fitting took 22.22 seconds\"\n\n\nParameter values on the fitted scale:\n\nunlist(fit$par)\n\n        mu          K       beta beta_edges lambda_new \n 1.1165440  0.4010628  0.3705936  1.8484052  3.0572086 \n\n\nParameter values on the transformed scale:\n\nfit$fit$par\n\n        mu          K       beta beta_edges lambda_new \n 0.1102382 -0.9136372 -0.9926493  0.6143232  1.1175023",
     "crumbs": [
       "Examples",
-      "<span class='chapter-number'>9</span>  <span class='chapter-title'>BA-Bipartite Examples</span>"
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>BA-Bipartite Examples</span>"
     ]
   },
   {
     "objectID": "crime_data.html",
     "href": "crime_data.html",
-    "title": "12  Crime data",
+    "title": "11  Crime data",
     "section": "",
-    "text": "12.1 BA-Bipartite Network Specification\nSo we have some crime data. The data will not be uploaded, I will just include the code here you can copy and paste to run the data cleaning / model fitting yourself.\nTo briefly describe it\nRecall under the BA-Bipartite network specification we are assuming that marks are structured in the following way:\nUnder this specification, perp-perp edges are not allowed to exist (is this correct?). Hence we can ignore the edges present in the perps.df (we will revisit when trying different model specs).",
+    "text": "11.1 BA-Bipartite Network Specification\nSo we have some crime data. The data will not be uploaded, I will just include the code here you can copy and paste to run the data cleaning / model fitting yourself.\nTo briefly describe it\nRecall under the BA-Bipartite network specification we are assuming that marks are structured in the following way:\nUnder this specification, perp-perp edges are not allowed to exist (is this correct?). Hence we can ignore the edges present in the perps.df (we will revisit when trying different model specs).",
     "crumbs": [
       "Sim studies",
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Crime data</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Crime data</span>"
     ]
   },
   {
     "objectID": "crime_data.html#ba-bipartite-network-specification",
     "href": "crime_data.html#ba-bipartite-network-specification",
-    "title": "12  Crime data",
+    "title": "11  Crime data",
     "section": "",
-    "text": "Nodes have two possible classifications - event and perp.\nEach mark consists of exactly 1 new event node arriving, which connects to old perp nodes according to the same degree-based weighting as the BA kernel.\nThe number of perp nodes is distributed Poisson(lambda_new)\n\n\n\n12.1.1 Data prep\nNow, looking at the perps.df data:\n\nsummary(as.numeric(perps$person_id))\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n      5  426537  863430  868561 1307976 1742898 \n\n\nIt looks like the person_id’s stretch all the way from 5 to 1742898. We will just treat these as node ID’s. And in order to prevent any clashes, we will just prepend “event_” on to the event_id to use as the node ID’s of the event nodes.\nFirst converting to long format.\n\nlibrary(tidyr)\nlibrary(dplyr)\n\n# Love how easy this is\nlong_df &lt;- events %&gt;%\n  unnest(people) %&gt;%\n  rename(person = people)\n\nNow need to make sure the names don’t clash as mentioned above (will prepend “perp_” to the perp ID’s aswell just for consistency):\n\nedges &lt;- long_df %&gt;% \n  mutate(\n    event_id = paste0(\"event_\", event_id),\n    person = paste0(\"perp_\", person)\n    ) %&gt;% \n  rename(\n    i = event_id, # Doesn't matter what order we choose i/j\n    j = person,\n    time = diff_date\n  ) %&gt;% \n  select(i, j, time) %&gt;% \n  distinct() %&gt;%  # The way the original data set was constructed, we end up with\n  filter(time &lt; 5)                  # two identical rows per edge sometimes\n\n# Only considering a small sub net for example \n\nLastly, we need to make sure we include the perp-event node classification.\nThis is easier if we use make_events() first, as it will automatically generate a nodes data frame, and then we can just add a column to this.\n\n\n\n\n\n\nNote\n\n\n\nNot sure if I like this manipulation after-the-fact. Wondering how you guys prepared your data.\n\n\n\nev &lt;- make_events(edges = edges)\n\nLooks like 14000-ish events, 27000-ish node arrivals, and 19000-ish edges.\nNow just add a “role” column to ev$nodes:\n\nev$nodes$role &lt;- ifelse(\n  grepl(\"event\", ev$nodes$id),\n  \"event\",\n  \"perp\"\n)\n\nAnd we are good to fit.\n\n\n12.1.2 Model fitting\nOnly gonna consider a SMALL time window, just trying to demonstrate here.\n\nsum(ev$times &lt; 5)\n\n[1] 147\n\n\nWe’ll set T_end = 5.\n\nparams_bip_init &lt;- list(\n  mu = 1,\n  K = 1,\n  beta = 1,\n  beta_edges = 1,\n  lambda_new = 3.5\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = ev,\n      params_init = params_bip_init,\n      mark_type = \"ba_bip\",\n      debug = T\n    )",
+    "text": "Nodes have two possible classifications - event and perp.\nEach mark consists of exactly 1 new event node arriving, which connects to old perp nodes according to the same degree-based weighting as the BA kernel.\nThe number of perp nodes is distributed Poisson(lambda_new)\n\n\n\n11.1.1 Data prep\nNow, looking at the perps.df data:\n\nsummary(as.numeric(perps$person_id))\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n      5  426537  863430  868561 1307976 1742898 \n\n\nIt looks like the person_id’s stretch all the way from 5 to 1742898. We will just treat these as node ID’s. And in order to prevent any clashes, we will just prepend “event_” on to the event_id to use as the node ID’s of the event nodes.\nFirst converting to long format.\n\nlibrary(tidyr)\nlibrary(dplyr)\n\n# Love how easy this is\nlong_df &lt;- events %&gt;%\n  unnest(people) %&gt;%\n  rename(person = people)\n\nNow need to make sure the names don’t clash as mentioned above (will prepend “perp_” to the perp ID’s aswell just for consistency):\n\nedges &lt;- long_df %&gt;% \n  mutate(\n    event_id = paste0(\"event_\", event_id),\n    person = paste0(\"perp_\", person)\n    ) %&gt;% \n  rename(\n    i = event_id, # Doesn't matter what order we choose i/j\n    j = person,\n    time = diff_date\n  ) %&gt;% \n  select(i, j, time) %&gt;% \n  distinct() %&gt;%  # The way the original data set was constructed, we end up with\n  filter(time &lt; 5)                  # two identical rows per edge sometimes\n\n# Only considering a small sub net for example \n\nLastly, we need to make sure we include the perp-event node classification.\nThis is easier if we use make_events() first, as it will automatically generate a nodes data frame, and then we can just add a column to this.\n\n\n\n\n\n\nNote\n\n\n\nNot sure if I like this manipulation after-the-fact. Wondering how you guys prepared your data.\n\n\n\nev &lt;- make_events(edges = edges)\n\nLooks like 14000-ish events, 27000-ish node arrivals, and 19000-ish edges.\nNow just add a “role” column to ev$nodes:\n\nev$nodes$role &lt;- ifelse(\n  grepl(\"event\", ev$nodes$id),\n  \"event\",\n  \"perp\"\n)\n\nAnd we are good to fit.\n\n\n11.1.2 Model fitting\nOnly gonna consider a SMALL time window, just trying to demonstrate here.\n\nsum(ev$times &lt; 5)\n\n[1] 147\n\n\nWe’ll set T_end = 5.\n\nparams_bip_init &lt;- list(\n  mu = 1,\n  K = 1,\n  beta = 1,\n  beta_edges = 1,\n  lambda_new = 3.5\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = ev,\n      params_init = params_bip_init,\n      mark_type = \"ba_bip\",\n      debug = T\n    )",
     "crumbs": [
       "Sim studies",
-      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Crime data</span>"
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Crime data</span>"
     ]
   }
 ]

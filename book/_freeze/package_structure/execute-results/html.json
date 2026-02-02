@@ -1,0 +1,15 @@
+{
+  "hash": "ade2feabaa2e6426df1b5b0bde05e4a1",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\neditor: \n  markdown: \n    wrap: 72\n---\n\n\n\n# Package Structure\n\nSame structure as the original repo, however you now provide the events\ndata directly, rather than converting it to a network beforehand.\n\nSee following: \n\n![Current package pipeline, subject to changes.](data_pipeline.png){width=400px}\n\nSo plug data into `make_events()`, choose a kernel and you're good.\n\nNow, you could argue that the `make_events()` shouldn't be exposed to\nthe user, and that it should happen internally. IDK I kind of like\nseeing how the events are structured.\n\nAlso how do we feel in general about providing data as data frames\nrather than networks? To me it feels much more natural, and it is much\neasier to work with the original data frames than trying to make changes\nusing the network functions.\n\nAlso I believe in the legacy code, edge less node arrivals were not\nsupported in the `events_to_net()` function, as it only took edges as an\nargument.\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

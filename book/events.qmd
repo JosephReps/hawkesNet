@@ -7,7 +7,7 @@ Opinions?
 
 Example:
 
-```{r}
+```{r results = FALSE}
 nodes <- data.frame(
   id   = c("1", "2", "3"),
   time = c(0, 1, 2)
@@ -19,35 +19,109 @@ edges <- data.frame(
 )
 
 ev <- make_events(nodes = nodes, edges = edges)
-ev
 ```
+
+::: {.columns style = "padding-bottom: 2rem;"}
+
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(ev$times, caption = "Event times")
+```
+:::
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(ev$nodes, caption = "Node arrivals")
+```
+:::
+::: {.column style="width: 232px"}
+```{r echo = FALSE}
+kable(ev$edges, caption = "Edge arrivals")
+```
+:::
+:::
 
 In the case you only have `edges`, the `make_events()` function will implicitly
 generate the nodes as they appear in `edges`. Note this is assuming that nodes
 join the network at the first time in which they appear in `edges`.
 
 ```{r}
-edges <- data.frame(
+edges_example <- data.frame(
   i    = c("1", "1"),
   j    = c("2", "3"),
   time = c(1, 2)
 )
 
-hawkesNet::make_events(edges = edges)
+events_from_edges <- make_events(edges = edges_example)
 ```
+
+::: {.columns style = "padding-bottom: 2rem;"}
+
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(events_from_edges$times, caption = "Event times")
+```
+:::
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(events_from_edges$nodes, caption = "Node arrivals")
+```
+:::
+::: {.column style="width: 232px"}
+```{r echo = FALSE}
+kable(events_from_edges$edges, caption = "Edge arrivals")
+```
+:::
+:::
 
 There are also two useful helpers for working with events, `edges_by_event()` and
 `nodes_by_event()`:
 
 ```{r}
-edges_by_event(ev)
-nodes_by_event(ev)
+edges_per_event <- edges_by_event(ev)
+nodes_per_event <- nodes_by_event(ev)
 ```
 
+::: {.columns style = "padding-bottom: 2rem;"}
 
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(edges_per_event[[1]], caption = "Event 1 Edges")
+```
+:::
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(edges_per_event[[2]], caption = "Event 2 Edges")
+```
+:::
+::: {.column style="width: 232px"}
+```{r echo = FALSE}
+kable(edges_per_event[[3]], caption = "Event 2 Edges")
+```
+:::
+:::
 
+::: {.columns style = "padding-bottom: 2rem;"}
 
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(nodes_per_event[[1]], caption = "Event 1 Nodes")
+```
+:::
+::: {.column style="padding-right: 0.5rem; width: 232px"}
+```{r echo = FALSE}
+kable(nodes_per_event[[2]], caption = "Event 2 Nodes")
+```
+:::
+::: {.column style="width: 232px"}
+```{r echo = FALSE}
+kable(nodes_per_event[[3]], caption = "Event 2 Nodes")
+```
+:::
+:::
 
+:::callout-note
+No edges in first event, sorry looks messy, need to fix.
+:::
 
 
 
