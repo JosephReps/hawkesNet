@@ -14,7 +14,7 @@ book:
     - events.qmd
     - simulation.qmd
     - model_fitting.qmd
-    - tooling.qmd
+    - diagnostics.qmd
     - part: "Examples"
       chapters:
         - examples_ba.qmd

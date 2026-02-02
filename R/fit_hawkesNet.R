@@ -162,16 +162,20 @@ fit_hawkesNet <- function(events,
   p_hat <- from_working(x_all, transform)
   ll_hat <- loglik(ev = events, params = p_hat, ...)
 
+  # Prepare output object
   out <- list(
     fit = fit,
     par = p_hat,
     loglik = ll_hat,
     convergence = fit$convergence,
-    message = fit$message
+    message = fit$message,
+    events = events
   )
   if (hessian) out$hessian <- fit$hessian
+  class(out) <- c("hawkesNet_fit", class(out))
 
   print(paste0("Fitting took ", round((proc.time()-start_time)[3],2), " seconds"))
+
   out
 }
 

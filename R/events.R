@@ -191,7 +191,7 @@ make_events <- function(nodes = NULL,
   }
 
   events <- list(times = times, nodes = nodes_df, edges = edges_df)
-  class(events) <- c("hg_events", "list")
+  class(events) <- c("events", "list")
 
   validate_events(events)
   events
