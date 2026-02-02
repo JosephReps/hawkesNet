@@ -275,7 +275,7 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">hawkesNet</h1>
-<p class="subtitle lead">A tutorial for Hawkes network growth models</p>
+<p class="subtitle lead">An R package for fitting Hawkes network growth models</p>
 </div>
 
 
@@ -292,12 +292,357 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><img src="BA example.png" class="img-fluid"></p>
+<style>
+.observablehq canvas{
+  width: 650px;
+  height: 550px;
+  max-width: 100%;
+  margin: 1.2rem auto;
+  display: block;
+  border-radius: 16px;
+}
+</style>
+<style>
+.net-hero-caption{
+  max-width: 650px;          /* match canvas width */
+  margin: 0.4rem auto 1.2rem auto;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #999;
+}
+</style>
+<!-- Straight from vibe-coding hell -->
+<div class="net-hero-wrap">
+<canvas id="net-hero" width="650" height="550" aria-label="Interactive evolving network">
+</canvas>
+</div>
+<div class="net-hero-caption">
+<p>Would be really cool to have some type of clustering in this, but couldn’t get it working so just gave up. Will come back later.</p>
+</div>
 <section id="preface" class="level1 unnumbered">
 <h1 class="unnumbered">Preface</h1>
 <p><a href="examples_ba.html">Skip straight to examples.</a></p>
 <p>Put together this e-book to hopefully make it easier for you guys to get familiar with the new package structure.</p>
 <p>This is only a very early construction, and basically any feedback I receive will be implemented in the future.</p>
+<style>
+.net-hero-wrap{
+  width: 650px;
+  height: 550px;
+  max-width: 100%;
+  margin: 1.2rem auto 1.4rem auto;
+  border-radius: 16px;
+  overflow: hidden;
+}
+#net-hero{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+</style>
+<script type="module">
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+const canvas = document.getElementById("net-hero");
+const ctx = canvas.getContext("2d");
+
+const width  = canvas.width;
+const height = canvas.height;
+
+const N = 100;
+const M_TARGET = 170;
+
+const cx = width / 2;
+const cy = height / 2;
+const R  = Math.min(width, height) / 2 - 14;
+
+const ERASE_RADIUS = 7;
+
+// smoother edge growth
+const EDGE_FADE_MS = 1100;      // was 700
+const REGROW_INTERVAL_MS = 40;
+const ERASE_COOLDOWN_MS = 10;
+
+const randInt = (n) => (Math.random() * n) | 0;
+const edgeKey = (a,b) => (a < b) ? `${a}-${b}` : `${b}-${a}`;
+
+// --- Theme colors ---
+function rgbaFromCssVar(varName, fallbackHex, a){
+  const css = getComputedStyle(document.documentElement);
+  const col = (css.getPropertyValue(varName) || fallbackHex).trim();
+  const m = col.match(/^#([0-9a-f]{6})$/i);
+  if (!m) return `rgba(17,17,17,${a})`;
+  const hex = m[1];
+  const R = parseInt(hex.slice(0,2), 16);
+  const G = parseInt(hex.slice(2,4), 16);
+  const B = parseInt(hex.slice(4,6), 16);
+  return `rgba(${R},${G},${B},${a})`;
+}
+const EDGE_BASE   = rgbaFromCssVar("--bs-body-color", "#111111", 0.18);
+const NODE_FILL   = rgbaFromCssVar("--bs-body-color", "#111111", 0.85);
+const RING_STROKE = rgbaFromCssVar("--bs-border-color", "#cccccc", 0.65);
+
+// --- Nodes ---
+const nodes = Array.from({ length: N }, (_, i) => ({ id: i }));
+
+// --- Edges ---
+const edgeSet = new Set();
+let links = [];
+
+function addEdge(a, b, born = performance.now()){
+  if (a === b) return false;
+  const key = edgeKey(a,b);
+  if (edgeSet.has(key)) return false;
+  edgeSet.add(key);
+  links.push({ source: a, target: b, born });
+  return true;
+}
+
+function removeEdgeByIndex(i){
+  const l = links[i];
+  const s = (typeof l.source === "object") ? l.source.id : l.source;
+  const t = (typeof l.target === "object") ? l.target.id : l.target;
+  edgeSet.delete(edgeKey(s,t));
+  links[i] = null;
+}
+
+// Initial edges
+while (links.length < M_TARGET){
+  const a = randInt(N);
+  let b = randInt(N);
+  if (b === a) b = (b + 1) % N;
+  addEdge(a,b);
+}
+
+// --- Forces (FR-ish) ---
+const sim = d3.forceSimulation(nodes)
+  .force("charge", d3.forceManyBody().strength(-65))
+  .force("link", d3.forceLink(links).id(d => d.id)
+    .distance(16)
+    .strength(0.32))
+  .force("center", d3.forceCenter(cx, cy))
+  .force("collision", d3.forceCollide(3))
+  .alpha(1);
+
+const linkForce = sim.force("link");
+
+// Boundary push (start earlier, stronger)
+function forceBoundaryPush(pushStrength = 0.85, startFrac = 0.60){
+  let _nodes;
+  const startR = R * startFrac;
+  function force(alpha){
+    const s = pushStrength * alpha;
+    for (const n of _nodes){
+      const dx = n.x - cx;
+      const dy = n.y - cy;
+      const d  = Math.hypot(dx, dy);
+      if (d > startR){
+        const t = Math.min(1, (d - startR) / (R - startR)); // 0..1
+        const k = s * t * t;
+        n.vx += (-dx / (d || 1)) * k;
+        n.vy += (-dy / (d || 1)) * k;
+      }
+    }
+  }
+  force.initialize = (ns) => { _nodes = ns; };
+  return force;
+}
+sim.force("boundary", forceBoundaryPush(0.85, 0.60));
+
+// Hard clamp + velocity reflection to prevent rim-sticking
+sim.on("tick", () => {
+  for (const n of nodes){
+    const dx = n.x - cx;
+    const dy = n.y - cy;
+    const d  = Math.hypot(dx, dy);
+
+    if (d > R){
+      // project back inside
+      const ux = dx / (d || 1);
+      const uy = dy / (d || 1);
+      n.x = cx + ux * (R - 0.8);
+      n.y = cy + uy * (R - 0.8);
+
+      // reflect outward velocity component + damp (key fix)
+      const vdot = n.vx * ux + n.vy * uy; // component along outward normal
+      if (vdot > 0){
+        n.vx -= 1.6 * vdot * ux;
+        n.vy -= 1.6 * vdot * uy;
+      }
+      n.vx *= 0.85;
+      n.vy *= 0.85;
+    }
+  }
+});
+
+// Keep evolving
+setInterval(() => {
+  sim.alpha(Math.max(sim.alpha(), 0.10)).restart();
+}, 1200);
+
+// --- Mouse erase ---
+let mouse = { x: -1e9, y: -1e9, inside: false };
+let eraseCooldown = 0;
+
+function toCanvasXY(e){
+  const rect = canvas.getBoundingClientRect();
+  const sx = width / rect.width;
+  const sy = height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * sx,
+    y: (e.clientY - rect.top) * sy
+  };
+}
+
+canvas.addEventListener("mousemove", (e) => {
+  const p = toCanvasXY(e);
+  mouse.x = p.x; mouse.y = p.y;
+
+  const dx = mouse.x - cx;
+  const dy = mouse.y - cy;
+  mouse.inside = (dx*dx + dy*dy) <= R*R;
+
+  if (mouse.inside) eraseTouchedEdges();
+});
+
+canvas.addEventListener("mouseleave", () => {
+  mouse.x = -1e9; mouse.y = -1e9; mouse.inside = false;
+});
+
+function distPointToSeg(px, py, ax, ay, bx, by){
+  const abx = bx - ax, aby = by - ay;
+  const apx = px - ax, apy = py - ay;
+  const ab2 = abx*abx + aby*aby;
+  if (ab2 === 0) return Math.hypot(px-ax, py-ay);
+  let t = (apx*abx + apy*aby) / ab2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px-(ax+t*abx), py-(ay+t*aby));
+}
+
+function eraseTouchedEdges(){
+  const now = performance.now();
+  if (now < eraseCooldown) return;
+  eraseCooldown = now + ERASE_COOLDOWN_MS;
+
+  const pr = ERASE_RADIUS;
+  let removed = 0;
+
+  for (let i = 0; i < links.length; i++){
+    const l = links[i];
+    if (!l) continue;
+
+    const s = (typeof l.source === "object") ? l.source : nodes[l.source];
+    const t = (typeof l.target === "object") ? l.target : nodes[l.target];
+
+    const minx = Math.min(s.x, t.x) - pr, maxx = Math.max(s.x, t.x) + pr;
+    const miny = Math.min(s.y, t.y) - pr, maxy = Math.max(s.y, t.y) + pr;
+    if (mouse.x < minx || mouse.x > maxx || mouse.y < miny || mouse.y > maxy) continue;
+
+    if (distPointToSeg(mouse.x, mouse.y, s.x, s.y, t.x, t.y) <= pr){
+      removeEdgeByIndex(i);
+      removed++;
+    }
+  }
+
+  if (removed > 0){
+    links = links.filter(Boolean);
+    linkForce.links(links);
+    sim.alpha(0.35).restart();
+  }
+}
+
+// --- FAST autonomous regrowth (adds edges quickly but looks smooth because of fade/ease) ---
+function regrowTick(){
+  const deficit = M_TARGET - links.length;
+  if (deficit <= 0) return;
+
+  let adds = 1;
+  if (deficit > 60) adds = 6;
+  else if (deficit > 30) adds = 4;
+  else if (deficit > 10) adds = 2;
+
+  const now = performance.now();
+  for (let k = 0; k < adds; k++){
+    const a = randInt(N);
+    let b = randInt(N);
+    if (b === a) b = (b + 1) % N;
+    addEdge(a,b, now);
+  }
+
+  linkForce.links(links);
+  sim.alpha(0.22).restart();
+}
+setInterval(regrowTick, REGROW_INTERVAL_MS);
+
+// --- Smooth easing for edge growth ---
+function easeInOut(t){
+  // cubic smoothstep
+  return t * t * (3 - 2 * t);
+}
+
+// --- Render ---
+function draw(){
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.clip();
+
+  const now = performance.now();
+
+  // base edges
+  ctx.strokeStyle = EDGE_BASE;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const l of links){
+    const s = (typeof l.source === "object") ? l.source : nodes[l.source];
+    const t = (typeof l.target === "object") ? l.target : nodes[l.target];
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(t.x, t.y);
+  }
+  ctx.stroke();
+
+  // new-edge overlay: ease opacity + start slightly thicker but faint
+  for (const l of links){
+    const age = now - (l.born ?? now);
+    if (age >= EDGE_FADE_MS) continue;
+
+    const t = Math.max(0, Math.min(1, age / EDGE_FADE_MS));
+    const a = easeInOut(t);
+
+    // subtle: fade in to a bit above base opacity
+    ctx.strokeStyle = rgbaFromCssVar("--bs-body-color", "#111111", 0.34 * a);
+    ctx.lineWidth = 1 + (1 - a) * 1.2; // thicker at birth, settles to 1
+    ctx.beginPath();
+    const s = (typeof l.source === "object") ? l.source : nodes[l.source];
+    const tnode = (typeof l.target === "object") ? l.target : nodes[l.target];
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(tnode.x, tnode.y);
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+
+  // nodes
+  ctx.fillStyle = NODE_FILL;
+  for (const n of nodes){
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+
+  // boundary
+  ctx.strokeStyle = RING_STROKE;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R + 0.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
 
 
 </section>

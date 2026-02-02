@@ -5,7 +5,7 @@ project:
 
 book:
   title: "hawkesNet"
-  subtitle: "A tutorial for Hawkes network growth models"
+  subtitle: "An R package for fitting Hawkes network growth models"
   sidebar:
     logo: mini_BA_logo.png
   chapters:
