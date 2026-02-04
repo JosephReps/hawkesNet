@@ -117,7 +117,7 @@ fit_hawkesNet <- function(events,
   # And in the case there are no free parameters, just return the likelihood
   # at the param_init values
   if (length(free_params) == 0L) {
-    ll <- loglik(ev = events, params = params_init, ...)
+    ll <- loglik(ev = events, params = params_init, mark_type = mark_type, ...)
     return(list(
       fit = NULL,
       par = params_init,
@@ -134,7 +134,7 @@ fit_hawkesNet <- function(events,
     # Make sure to transform to back from working scale
     p <- from_working(x, transform)
     ll <- tryCatch(
-      loglik(ev = events, params = p, ...),
+      loglik(ev = events, params = p, mark_type = mark_type,...),
       error = function(e) -Inf
     )
     if (!is.finite(ll)) return(1e100)
@@ -160,7 +160,7 @@ fit_hawkesNet <- function(events,
   x_all[free_params] <- fit$par
 
   p_hat <- from_working(x_all, transform)
-  ll_hat <- loglik(ev = events, params = p_hat, ...)
+  ll_hat <- loglik(ev = events, params = p_hat, mark_type = mark_type,...)
 
   # Prepare output object
   out <- list(
