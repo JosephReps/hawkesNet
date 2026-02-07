@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -172,6 +207,12 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">BA-Bipartite Examples</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_cs_bip.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CS-Bipartite Examples</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -186,13 +227,13 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./custom_pmf.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Custom Kernel PMF</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Custom Kernel PMF</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./custom_sim.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Custom Kernel Simulation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Custom Kernel Simulation</span></span></a>
   </div>
 </li>
       </ul>
@@ -209,13 +250,13 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./crime_data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Crime data</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Crime data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./conference_data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">conference_data.html</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Conference data</span></span></a>
   </div>
 </li>
       </ul>
@@ -232,19 +273,19 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./ba_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">BA Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">BA Sim Study</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cs_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">CS Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">CS Sim Study</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./ba_bip_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">BA-Bipartite Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">BA-Bipartite Sim Study</span></span></a>
   </div>
 </li>
       </ul>
@@ -265,7 +306,10 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a></li>
+  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a>
+  <ul class="collapse">
+  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -293,52 +337,97 @@ ul.task-list li input[type="checkbox"] {
 
 
 <style>
-.observablehq canvas{
+/* --- Hero block styling --- */
+.net-hero-wrap{
+  max-width: 650px;
+  margin: 1.2rem auto 0.6rem auto;
+  padding: 0;
+}
+
+.observablehq canvas,
+#net-hero{
   width: 650px;
   height: 550px;
   max-width: 100%;
-  margin: 1.2rem auto;
+  margin: 0 auto;
   display: block;
-  border-radius: 16px;
 }
-</style>
-<style>
+
+/* --- Caption under canvas --- */
 .net-hero-caption{
-  max-width: 650px;          /* match canvas width */
-  margin: 0.4rem auto 1.2rem auto;
-  font-size: 0.8rem;
-  line-height: 1.35;
-  color: #999;
+  max-width: 650px;
+  margin: 0.4rem auto 1.4rem auto;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #9aa0a6;
+  text-align: center;
+}
+
+/* --- Buttons row --- */
+.net-buttons{
+  display: flex;
+  justify-content: start;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin: -1rem 0 2rem 0;
+}
+
+.net-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  padding: 0.36rem 0.85rem;
+  border-radius: 8px;
+
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+
+  text-decoration: none;
+  line-height: 1;
+
+  color: rgba(10,15,20,0.92);
+
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.22);
+
+  box-shadow: 0 2px 7px rgba(0,0,0,0.18);
+
+  transition: background 0.15s ease,
+              border-color 0.15s ease,
+              box-shadow 0.15s ease,
+              transform 0.12s ease;
+}
+
+.net-btn:hover{
+  background: rgba(70,170,255,0.18);
+  border-color: rgba(70,170,255,0.90);
+  color: rgba(10,15,20,0.92);
 }
 </style>
-<!-- Straight from vibe-coding hell -->
+<div class="net-buttons">
+<p><a class="net-btn secondary" href="#installation">📦 Installation</a> <a class="net-btn primary" href="examples_ba.html">🚀 Skip to Examples</a></p>
+</div>
 <div class="net-hero-wrap">
 <canvas id="net-hero" width="650" height="550" aria-label="Interactive evolving network">
 </canvas>
 </div>
 <div class="net-hero-caption">
-<p>Would be really cool to have some type of clustering in this, but couldn’t get it working so just gave up. Will come back later.</p>
+<p>Interactive network visualisation. (Soon: real-time BA / CS simulation toggle.)</p>
 </div>
 <section id="preface" class="level1 unnumbered">
 <h1 class="unnumbered">Preface</h1>
-<p><a href="examples_ba.html">Skip straight to examples.</a></p>
-<p>Put together this e-book to hopefully make it easier for you guys to get familiar with the new package structure.</p>
-<p>This is only a very early construction, and basically any feedback I receive will be implemented in the future.</p>
-<style>
-.net-hero-wrap{
-  width: 650px;
-  height: 550px;
-  max-width: 100%;
-  margin: 1.2rem auto 1.4rem auto;
-  border-radius: 16px;
-  overflow: hidden;
-}
-#net-hero{
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-</style>
+<p><code>hawkesNet</code> is an R package for fitting self-exciting network growth models. It is designed to support simulation studies, model comparison, and scalable inference on dynamic networks.</p>
+<p>This e-book acts as both a guide to using the package, as well as a quick way to parse through documentation.</p>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("devtools")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"JosephReps/hawkesNet"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<!-- This is the interactive network code -->
+<!-- Straight from vibe-coding hell -->
 <script type="module">
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
@@ -645,6 +734,7 @@ draw();
 </script>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

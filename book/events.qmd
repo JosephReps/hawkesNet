@@ -2,12 +2,63 @@
 
 # Events
 
-So as stated, shifted from providing a network, to providing raw event data.
-Opinions?
+`hawkesNet` is **events-first**. Instead of converting your data into a `network`
+object up-front, you provide **node arrivals** and **edge arrivals** as data
+frames, then call `make_events()` to convert them into the internal `events`
+representation used by simulation and fitting.
 
-Example:
+## Input data frames
 
-```{r results = FALSE}
+### `nodes`
+
+| Column | Type | Meaning | Notes |
+|---|---|---|---|
+| `id` | character / integer | Node identifier | Must be unique within `nodes`. IDs used in `edges$i`/`edges$j` must match these. |
+| `time` | numeric | Node birth/arrival time | Can be continuous or discrete. Must be comparable to `edges$time`. |
+| `role` (optional) | character | Node role/type (e.g. `"event"`, `"perp"`) | Required for bipartite kernels (e.g. `*_bip`) if your mark model distinguishes node types. |
+| *(anything else)* | any | Extra node attributes | Carried through as vertex attributes in the underlying network during fitting. |
+
+### `edges`
+
+| Column | Type | Meaning | Notes |
+|---|---|---|---|
+| `i` | character / integer | Tail/endpoint node id | Together with `j` identifies an edge between two nodes. |
+| `j` | character / integer | Head/endpoint node id | Current hawkesNet kernels treat edges as **undirected** (order doesn’t matter). |
+| `time` | numeric | Edge arrival time | Must be \(\ge\) both endpoint birth times (if provided). |
+| *(anything else)* | any | Extra edge attributes | Carried through as edge attributes in the underlying network during fitting. |
+
+## `make_events()` API
+
+| Argument | What it is | What it does |
+|---|---|---|
+| `nodes` | data frame (optional) | Node arrivals (`id`, `time`, …). If omitted, births can be inferred from `edges` (see below). |
+| `edges` | data frame (optional) | Edge arrivals (`i`, `j`, `time`, …). |
+| `allow_implicit_birth` | logical | If `TRUE` and `nodes` is not supplied, infer node birth time as the first time the id appears in `edges`. |
+| `...` | optional | Package may expose additional validation/behaviour flags (kept here to avoid duplicating implementation details in the docs). |
+
+::: {.callout-note}
+If you *only* pass `edges` (implicit births), you **cannot represent edgeless node
+arrivals**—because the node only “exists” when it first appears in an edge.
+:::
+
+## What `make_events()` returns
+
+An `events` object is a list with three data frames:
+
+| Component | Columns | Meaning |
+|---|---|---|
+| `ev$times` | `event_id`, `t` | Unique sorted times used as event indices. |
+| `ev$nodes` | `event_id`, `id`, … | Node arrivals mapped onto `event_id`. |
+| `ev$edges` | `event_id`, `i`, `j`, … | Edge arrivals mapped onto `event_id`. |
+
+Two helpers convert these tables into per-event lists:
+
+- `nodes_by_event(ev)` → list of node-arrival data frames (one per `event_id`)
+- `edges_by_event(ev)` → list of edge-arrival data frames (one per `event_id`)
+
+## Example
+
+```{r results=FALSE}
 nodes <- data.frame(
   id   = c("1", "2", "3"),
   time = c(0, 1, 2)
@@ -21,113 +72,50 @@ edges <- data.frame(
 ev <- make_events(nodes = nodes, edges = edges)
 ```
 
-::: {.columns style = "padding-bottom: 2rem;"}
-
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
+::: {.columns style="gap: 0.8rem; padding-bottom: 1.4rem;"}
+::: {.column width="33%"}
+```{r echo=FALSE}
 kable(ev$times, caption = "Event times")
 ```
 :::
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
+::: {.column width="33%"}
+```{r echo=FALSE}
 kable(ev$nodes, caption = "Node arrivals")
 ```
 :::
-::: {.column style="width: 232px"}
-```{r echo = FALSE}
+::: {.column width="33%"}
+```{r echo=FALSE}
 kable(ev$edges, caption = "Edge arrivals")
 ```
 :::
 :::
 
-In the case you only have `edges`, the `make_events()` function will implicitly
-generate the nodes as they appear in `edges`. Note this is assuming that nodes
-join the network at the first time in which they appear in `edges`.
+### Implicit births from edges
 
-```{r}
+```{r results=FALSE}
 edges_example <- data.frame(
   i    = c("1", "1"),
   j    = c("2", "3"),
   time = c(1, 2)
 )
 
-events_from_edges <- make_events(edges = edges_example)
+events_from_edges <- make_events(edges = edges_example, allow_implicit_birth = TRUE)
 ```
 
-::: {.columns style = "padding-bottom: 2rem;"}
-
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
+::: {.columns style="gap: 0.8rem; padding-bottom: 1.4rem;"}
+::: {.column width="33%"}
+```{r echo=FALSE}
 kable(events_from_edges$times, caption = "Event times")
 ```
 :::
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
-kable(events_from_edges$nodes, caption = "Node arrivals")
+::: {.column width="33%"}
+```{r echo=FALSE}
+kable(events_from_edges$nodes, caption = "Inferred node arrivals")
 ```
 :::
-::: {.column style="width: 232px"}
-```{r echo = FALSE}
+::: {.column width="33%"}
+```{r echo=FALSE}
 kable(events_from_edges$edges, caption = "Edge arrivals")
 ```
 :::
 :::
-
-There are also two useful helpers for working with events, `edges_by_event()` and
-`nodes_by_event()`:
-
-```{r}
-edges_per_event <- edges_by_event(ev)
-nodes_per_event <- nodes_by_event(ev)
-```
-
-::: {.columns style = "padding-bottom: 2rem;"}
-
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
-kable(edges_per_event[[1]], caption = "Event 1 Edges")
-```
-:::
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
-kable(edges_per_event[[2]], caption = "Event 2 Edges")
-```
-:::
-::: {.column style="width: 232px"}
-```{r echo = FALSE}
-kable(edges_per_event[[3]], caption = "Event 2 Edges")
-```
-:::
-:::
-
-::: {.columns style = "padding-bottom: 2rem;"}
-
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
-kable(nodes_per_event[[1]], caption = "Event 1 Nodes")
-```
-:::
-::: {.column style="padding-right: 0.5rem; width: 232px"}
-```{r echo = FALSE}
-kable(nodes_per_event[[2]], caption = "Event 2 Nodes")
-```
-:::
-::: {.column style="width: 232px"}
-```{r echo = FALSE}
-kable(nodes_per_event[[3]], caption = "Event 2 Nodes")
-```
-:::
-:::
-
-:::callout-note
-No edges in first event, sorry looks messy, need to fix.
-:::
-
-
-
-
-
-
-
-
-

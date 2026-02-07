@@ -20,6 +20,7 @@ book:
         - examples_ba.qmd
         - examples_cs.qmd
         - examples_ba_bip.qmd
+        - examples_cs_bip.qmd
     - part: "Custom kernels"
       chapters:
         - custom_pmf.qmd

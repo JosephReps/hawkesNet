@@ -208,6 +208,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">BA-Bipartite Examples</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_cs_bip.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">CS-Bipartite Examples</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -222,13 +228,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./custom_pmf.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Custom Kernel PMF</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Custom Kernel PMF</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./custom_sim.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Custom Kernel Simulation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Custom Kernel Simulation</span></span></a>
   </div>
 </li>
       </ul>
@@ -245,13 +251,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./crime_data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Crime data</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Crime data</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./conference_data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">conference_data.html</span></span></a>
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">Conference data</span></span></a>
   </div>
 </li>
       </ul>
@@ -268,19 +274,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./ba_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">BA Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">BA Sim Study</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cs_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">CS Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">CS Sim Study</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./ba_bip_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">BA-Bipartite Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">BA-Bipartite Sim Study</span></span></a>
   </div>
 </li>
       </ul>
@@ -296,8 +302,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#input-data-frames" id="toc-input-data-frames" class="nav-link active" data-scroll-target="#input-data-frames"><span class="header-section-number">2.1</span> Input data frames</a>
+  <ul class="collapse">
+  <li><a href="#nodes" id="toc-nodes" class="nav-link" data-scroll-target="#nodes"><span class="header-section-number">2.1.1</span> <code>nodes</code></a></li>
+  <li><a href="#edges" id="toc-edges" class="nav-link" data-scroll-target="#edges"><span class="header-section-number">2.1.2</span> <code>edges</code></a></li>
+  </ul></li>
+  <li><a href="#make_events-api" id="toc-make_events-api" class="nav-link" data-scroll-target="#make_events-api"><span class="header-section-number">2.2</span> <code>make_events()</code> API</a></li>
+  <li><a href="#what-make_events-returns" id="toc-what-make_events-returns" class="nav-link" data-scroll-target="#what-make_events-returns"><span class="header-section-number">2.3</span> What <code>make_events()</code> returns</a></li>
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">2.4</span> Example</a>
+  <ul class="collapse">
+  <li><a href="#implicit-births-from-edges" id="toc-implicit-births-from-edges" class="nav-link" data-scroll-target="#implicit-births-from-edges"><span class="header-section-number">2.4.1</span> Implicit births from edges</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -321,8 +343,194 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>So as stated, shifted from providing a network, to providing raw event data. Opinions?</p>
-<p>Example:</p>
+<p><code>hawkesNet</code> is <strong>events-first</strong>. Instead of converting your data into a <code>network</code> object up-front, you provide <strong>node arrivals</strong> and <strong>edge arrivals</strong> as data frames, then call <code>make_events()</code> to convert them into the internal <code>events</code> representation used by simulation and fitting.</p>
+<section id="input-data-frames" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="input-data-frames"><span class="header-section-number">2.1</span> Input data frames</h2>
+<section id="nodes" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="nodes"><span class="header-section-number">2.1.1</span> <code>nodes</code></h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Meaning</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>id</code></td>
+<td>character / integer</td>
+<td>Node identifier</td>
+<td>Must be unique within <code>nodes</code>. IDs used in <code>edges$i</code>/<code>edges$j</code> must match these.</td>
+</tr>
+<tr class="even">
+<td><code>time</code></td>
+<td>numeric</td>
+<td>Node birth/arrival time</td>
+<td>Can be continuous or discrete. Must be comparable to <code>edges$time</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>role</code> (optional)</td>
+<td>character</td>
+<td>Node role/type (e.g.&nbsp;<code>"event"</code>, <code>"perp"</code>)</td>
+<td>Required for bipartite kernels (e.g.&nbsp;<code>*_bip</code>) if your mark model distinguishes node types.</td>
+</tr>
+<tr class="even">
+<td><em>(anything else)</em></td>
+<td>any</td>
+<td>Extra node attributes</td>
+<td>Carried through as vertex attributes in the underlying network during fitting.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="edges" class="level3" data-number="2.1.2">
+<h3 data-number="2.1.2" class="anchored" data-anchor-id="edges"><span class="header-section-number">2.1.2</span> <code>edges</code></h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Meaning</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>i</code></td>
+<td>character / integer</td>
+<td>Tail/endpoint node id</td>
+<td>Together with <code>j</code> identifies an edge between two nodes.</td>
+</tr>
+<tr class="even">
+<td><code>j</code></td>
+<td>character / integer</td>
+<td>Head/endpoint node id</td>
+<td>Current hawkesNet kernels treat edges as <strong>undirected</strong> (order doesn’t matter).</td>
+</tr>
+<tr class="odd">
+<td><code>time</code></td>
+<td>numeric</td>
+<td>Edge arrival time</td>
+<td>Must be () both endpoint birth times (if provided).</td>
+</tr>
+<tr class="even">
+<td><em>(anything else)</em></td>
+<td>any</td>
+<td>Extra edge attributes</td>
+<td>Carried through as edge attributes in the underlying network during fitting.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="make_events-api" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="make_events-api"><span class="header-section-number">2.2</span> <code>make_events()</code> API</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Argument</th>
+<th>What it is</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>nodes</code></td>
+<td>data frame (optional)</td>
+<td>Node arrivals (<code>id</code>, <code>time</code>, …). If omitted, births can be inferred from <code>edges</code> (see below).</td>
+</tr>
+<tr class="even">
+<td><code>edges</code></td>
+<td>data frame (optional)</td>
+<td>Edge arrivals (<code>i</code>, <code>j</code>, <code>time</code>, …).</td>
+</tr>
+<tr class="odd">
+<td><code>allow_implicit_birth</code></td>
+<td>logical</td>
+<td>If <code>TRUE</code> and <code>nodes</code> is not supplied, infer node birth time as the first time the id appears in <code>edges</code>.</td>
+</tr>
+<tr class="even">
+<td><code>...</code></td>
+<td>optional</td>
+<td>Package may expose additional validation/behaviour flags (kept here to avoid duplicating implementation details in the docs).</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If you <em>only</em> pass <code>edges</code> (implicit births), you <strong>cannot represent edgeless node arrivals</strong>—because the node only “exists” when it first appears in an edge.</p>
+</div>
+</div>
+</section>
+<section id="what-make_events-returns" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="what-make_events-returns"><span class="header-section-number">2.3</span> What <code>make_events()</code> returns</h2>
+<p>An <code>events</code> object is a list with three data frames:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Columns</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ev$times</code></td>
+<td><code>event_id</code>, <code>t</code></td>
+<td>Unique sorted times used as event indices.</td>
+</tr>
+<tr class="even">
+<td><code>ev$nodes</code></td>
+<td><code>event_id</code>, <code>id</code>, …</td>
+<td>Node arrivals mapped onto <code>event_id</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>ev$edges</code></td>
+<td><code>event_id</code>, <code>i</code>, <code>j</code>, …</td>
+<td>Edge arrivals mapped onto <code>event_id</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Two helpers convert these tables into per-event lists:</p>
+<ul>
+<li><code>nodes_by_event(ev)</code> → list of node-arrival data frames (one per <code>event_id</code>)</li>
+<li><code>edges_by_event(ev)</code> → list of edge-arrival data frames (one per <code>event_id</code>)</li>
+</ul>
+</section>
+<section id="example" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="example"><span class="header-section-number">2.4</span> Example</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>nodes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">id   =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>),</span>
@@ -336,8 +544,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ev <span class="ot">&lt;-</span> <span class="fu">make_events</span>(<span class="at">nodes =</span> nodes, <span class="at">edges =</span> edges)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="columns" style="padding-bottom: 2rem;">
-<div class="column" style="padding-right: 0.5rem; width: 232px">
+<div class="columns" style="gap: 0.8rem; padding-bottom: 1.4rem;">
+<div class="column" style="width:33%;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -365,7 +573,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </div>
 </div>
-</div><div class="column" style="padding-right: 0.5rem; width: 232px">
+</div><div class="column" style="width:33%;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -393,7 +601,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </div>
 </div>
-</div><div class="column" style="width: 232px">
+</div><div class="column" style="width:33%;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -422,7 +630,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>In the case you only have <code>edges</code>, the <code>make_events()</code> function will implicitly generate the nodes as they appear in <code>edges</code>. Note this is assuming that nodes join the network at the first time in which they appear in <code>edges</code>.</p>
+<section id="implicit-births-from-edges" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="implicit-births-from-edges"><span class="header-section-number">2.4.1</span> Implicit births from edges</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>edges_example <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">i    =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"1"</span>),</span>
@@ -430,10 +639,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>events_from_edges <span class="ot">&lt;-</span> <span class="fu">make_events</span>(<span class="at">edges =</span> edges_example)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>events_from_edges <span class="ot">&lt;-</span> <span class="fu">make_events</span>(<span class="at">edges =</span> edges_example, <span class="at">allow_implicit_birth =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="columns" style="padding-bottom: 2rem;">
-<div class="column" style="padding-right: 0.5rem; width: 232px">
+<div class="columns" style="gap: 0.8rem; padding-bottom: 1.4rem;">
+<div class="column" style="width:33%;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -457,11 +666,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </div>
 </div>
-</div><div class="column" style="padding-right: 0.5rem; width: 232px">
+</div><div class="column" style="width:33%;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
-<caption>Node arrivals</caption>
+<caption>Inferred node arrivals</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;"></th>
@@ -489,7 +698,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 </div>
 </div>
-</div><div class="column" style="width: 232px">
+</div><div class="column" style="width:33%;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -518,142 +727,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>There are also two useful helpers for working with events, <code>edges_by_event()</code> and <code>nodes_by_event()</code>:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>edges_per_event <span class="ot">&lt;-</span> <span class="fu">edges_by_event</span>(ev)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>nodes_per_event <span class="ot">&lt;-</span> <span class="fu">nodes_by_event</span>(ev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="columns" style="padding-bottom: 2rem;">
-<div class="column" style="padding-right: 0.5rem; width: 232px">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top">
-<caption>Event 1 Edges</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">i</th>
-<th style="text-align: left;">j</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="padding-right: 0.5rem; width: 232px">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event 2 Edges</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">i</th>
-<th style="text-align: left;">j</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">2</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="width: 232px">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event 2 Edges</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">i</th>
-<th style="text-align: left;">j</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div class="columns" style="padding-bottom: 2rem;">
-<div class="column" style="padding-right: 0.5rem; width: 232px">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event 1 Nodes</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">id</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">1</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="padding-right: 0.5rem; width: 232px">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event 2 Nodes</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">id</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">2</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="width: 232px">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event 2 Nodes</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">id</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>No edges in first event, sorry looks messy, need to fix.</p>
-</div>
-</div>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
