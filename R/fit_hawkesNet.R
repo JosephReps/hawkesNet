@@ -11,7 +11,7 @@
 #'   to `"log"`. If `NULL`, all parameters default to `"log"`.
 #' @param hessian Logical; if `TRUE`, return the Hessian from `optim()`.
 #' @param control List of control arguments passed to [stats::optim()].
-#' @param mark_type One of `"ba"`, `"cs"`, `"ba_bip"`.
+#' @param mark_type One of `"ba"`, `"cs"`, `"ba_bip"`, `"cs_bip"`.
 #' @param debug Logical; enable debug mode (passed through to likelihood/mark
 #'   components where supported).
 #' @param T_end Optional end time for the likelihood window.
@@ -71,6 +71,7 @@ fit_hawkesNet <- function(events,
                           debug = FALSE,
                           T_end = NULL,
                           T0 = 0,
+                          formula_rhs = NULL,
                           ...
                           ) {
   # 0) Input validation
@@ -114,11 +115,23 @@ fit_hawkesNet <- function(events,
   fixed_params <- intersect(fixed_params, names(params_init))
   free_params <- setdiff(names(params_init), fixed_params)
 
+
+  # Build the compiled likelihood function ONCE (optim() will call the objective
+  # many times; we don't want to rebuild mark caches each time).
+  ll_fn <- .build_loglik_fn(
+    events = events,
+    T_end = T_end,
+    T0 = T0,
+    mark_type = mark_type,
+    debug = debug,
+    formula_rhs = formula_rhs,
+    ...
+  )
+
   # And in the case there are no free parameters, just return the likelihood
   # at the param_init values
   if (length(free_params) == 0L) {
-    ll <- loglik(ev = events, params = params_init,
-                 mark_type = mark_type, debug = debug, ...)
+    ll <- ll_fn(params_init)
     return(list(
       fit = NULL,
       par = params_init,
@@ -135,7 +148,7 @@ fit_hawkesNet <- function(events,
     # Make sure to transform to back from working scale
     p <- from_working(x, transform)
     ll <- tryCatch(
-      loglik(ev = events, params = p, mark_type = mark_type, debug = debug,...),
+      ll_fn(p),
       error = function(e) -Inf
     )
     if (!is.finite(ll)) return(1e100)
@@ -161,8 +174,7 @@ fit_hawkesNet <- function(events,
   x_all[free_params] <- fit$par
 
   p_hat <- from_working(x_all, transform)
-  ll_hat <- loglik(ev = events, params = p_hat,
-                   mark_type = mark_type, debug = debug,...)
+  ll_hat <- ll_fn(p_hat)
 
   # Prepare output object
   out <- list(
