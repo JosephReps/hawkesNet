@@ -11,7 +11,7 @@
 #'   to `"log"`. If `NULL`, all parameters default to `"log"`.
 #' @param hessian Logical; if `TRUE`, return the Hessian from `optim()`.
 #' @param control List of control arguments passed to [stats::optim()].
-#' @param mark_type One of `"ba"`, `"cs"`, `"ba_bip"`.
+#' @param mark_type One of `"ba"`, `"cs"`, `"ba_bip"`, `"cs_bip"`.
 #' @param debug Logical; enable debug mode (passed through to likelihood/mark
 #'   components where supported).
 #' @param T_end Optional end time for the likelihood window.

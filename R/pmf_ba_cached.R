@@ -21,7 +21,7 @@ compile_logpmf_ba <- function(
 
   arrivals <- nodes_by_event(events)
   edges_by <- edges_by_event(events)
-  event_times <- events$times$time
+  event_times <- events$times$t
 
   # One pass through the data (network manipulation happens ONCE here)
   net <- if (is.null(net0)) net_init_fun() else net0

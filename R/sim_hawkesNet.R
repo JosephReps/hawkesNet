@@ -41,13 +41,16 @@ sim_hawkesNet <- function(
     sim_mark_fun <- sim_mark_ba_bip
   } else if (mark_type == "cs") {
     sim_mark_fun <- sim_mark_cs
+  } else if (mark_type == "cs_bip") {
+    sim_mark_fun <- sim_mark_cs_bip
   } else {
-    stop("mark_type must be one of 'ba', 'cs', 'ba_bip'")
+    stop("mark_type must be one of 'ba', 'cs', 'ba_bip', 'cs_bip'")
   }
+
 
   # CS: model cache for ernm
   cs_model_cache <- NULL
-  if (mark_type == "cs") {
+  if (mark_type %in% c("cs", "cs_bip")) {
     cs_model_cache <- list(rhs = NULL, model = NULL)
   }
 
@@ -84,19 +87,18 @@ sim_hawkesNet <- function(
 
     if (stats::runif(1) < a) {
       # accepted: sample mark given *pre-event* state at t_prop
-      if (mark_type == "cs") {
+      if (mark_type %in% c("cs", "cs_bip")) {
         mk <- sim_mark_fun(net = net, t_k = t_prop, params = params, model_cache = cs_model_cache, ...)
       } else {
         mk <- sim_mark_fun(net = net, t_k = t_prop, params = params, delta = delta, ...)
       }
 
-
       # CS: carry forward ERNM model cache (to avoid rebuilding each event)
-      if (mark_type == "cs" && !is.null(mk$model_cache)) {
+      if (mark_type %in% c("cs", "cs_bip") && !is.null(mk$model_cache)) {
         cs_model_cache <- mk$model_cache
       }
 
-arrivals_k <- mk$arrivals
+      arrivals_k <- mk$arrivals
       edges_k <- mk$edges
 
       # Normalise arrivals to a data.frame with at least `id`

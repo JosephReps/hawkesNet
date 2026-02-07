@@ -61,23 +61,28 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
     truncation = Inf,
     ...
 ) {
-  # Precompute time vector (robust to 't' vs 'time')
-  event_times <- NULL
-  if (!is.null(events$times$t)) event_times <- events$times$t
-  if (is.null(event_times) && !is.null(events$times$time)) event_times <- events$times$time
-  if (is.null(event_times)) stop("events$times must contain column 't' or 'time'.", call. = FALSE)
+  stopifnot(inherits(events, "events"))
+  event_times <- events$times$t
 
+  # In the case of no events
   if (length(event_times) == 0L) {
     return(function(params) 0.0)
   }
 
+  # If the user does not specify T_end, assume the event window lasts exactly
+  # up until the last event
   if (is.null(T_end)) T_end <- max(event_times)
   if (T_end < max(event_times)) stop("T_end must be >= max event time", call. = FALSE)
 
+  # Grab the lists of node and edge arrivals by event
   arrivals <- nodes_by_event(events)
   edges <- edges_by_event(events)
 
-  # Compile mark kernel ONCE
+  # Compile the mark kernel function.
+  # This allow us to calculate the mark-likelihood contribution as a simple
+  # function of the parameters.
+  # The reason this works is that the network changes are fixed regardless of
+  # the parameter values.
   mark_logpmf <- switch(
     mark_type,
     "ba" = compile_logpmf_ba(
@@ -88,7 +93,14 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
       delta = 0.001,
       ...
     ),
-    "ba_bip" = log_pmf_ba_bip,
+    "ba_bip" = compile_logpmf_ba_bip(
+      events = events,
+      net_init_fun = net_init_fun,
+      net0 = net0,
+      net_step_fun = net_step_fun,
+      delta = 0.001,
+      ...
+    ),
     "cs" = compile_logpmf_cs(
       events = events,
       formula_rhs = formula_rhs,
@@ -99,8 +111,20 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
       model_cache = NULL,
       ...
     ),
-    stop("mark_type must be one of 'ba', 'cs', 'ba_bip'", call. = FALSE)
+    "cs_bip" = compile_logpmf_cs_bip(
+      events = events,
+      formula_rhs = formula_rhs,
+      truncation = truncation,
+      net_init_fun = net_init_fun,
+      net0 = net0,
+      net_step_fun = net_step_fun,
+      model_cache = NULL,
+      ...
+    ),
+    stop("mark_type must be one of 'ba', 'cs', 'ba_bip', 'cs_bip'", call. = FALSE)
   )
+
+
 
   # Debug: precompute layout from full network derived from events
   debug_layout <- NULL
@@ -118,7 +142,7 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
     if (!is.finite(mu) || !is.finite(K) || !is.finite(beta) || mu <= 0 || K < 0 || beta <= 0)
       return(-Inf)
 
-    # ✅ mark loglik ONCE (it already sums over events)
+    # mark loglik ONCE (it already sums over events)
     mark_ll_total <- mark_logpmf(params)
     if (!is.finite(mark_ll_total)) return(-Inf)
 
@@ -146,6 +170,13 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
       ll_time <- ll_time + log(lambda_g)
 
       net <- net_step_fun(net, new_nodes, new_edges, t_k)
+
+      # Debug plot (two panels)
+      if (isTRUE(debug)) {
+        .debug_plot_step(net, debug_layout, t_k, 0, ll_time, ll_time + mark_ll_total, new_nodes,
+                         new_edges, event_id = events$times$event_id[idx], edge_probs = NULL)
+        readline("Press Enter / Return to continue to next event...")
+      }
 
       time_cache$S <- time_cache$S + 1
       t_prev <- t_k
