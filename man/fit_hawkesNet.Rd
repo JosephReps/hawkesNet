@@ -15,6 +15,7 @@ fit_hawkesNet(
   debug = FALSE,
   T_end = NULL,
   T0 = 0,
+  formula_rhs = NULL,
   ...
 )
 }
@@ -36,7 +37,7 @@ to `"log"`. If `NULL`, all parameters default to `"log"`.}
 
 \item{control}{List of control arguments passed to [stats::optim()].}
 
-\item{mark_type}{One of `"ba"`, `"cs"`, `"ba_bip"`.}
+\item{mark_type}{One of `"ba"`, `"cs"`, `"ba_bip"`, `"cs_bip"`.}
 
 \item{debug}{Logical; enable debug mode (passed through to likelihood/mark
 components where supported).}
