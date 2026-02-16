@@ -40,8 +40,10 @@ list(arrivals = data.frame(id=...), edges = data.frame(i,j))
 }
 \description{
 For one accepted event time t_k:
-1) Sample number of arrivals M ~ Pois(node_lambda) if t_k <= max_node_time, else M=0.
-2) Add M new nodes (conceptually; we augment a copy for change-stats).
-3) For each new node u, consider candidate edges to old nodes v (deterministic truncation).
-4) Sample each candidate edge independently with probability p_uv from edge_probs_cs().
+\enumerate{
+\item Sample number of arrivals M ~ Pois(node_lambda) if t_k <= max_node_time, else M=0.
+\item Add M new nodes (conceptually; we augment a copy for change-stats).
+\item For each new node u, consider candidate edges to old nodes v (deterministic truncation).
+\item Sample each candidate edge independently with probability p_uv from edge_probs_cs().
+}
 }

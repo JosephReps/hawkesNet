@@ -19,27 +19,27 @@
 }
 \arguments{
 \item{x}{A fitted model object. Recommended structure is the list returned by
-`fit_hawkesNet()` with `class(x) = 'hawkesNet_fit'` and the original events
-stored as `x$events`.}
+\code{fit_hawkesNet()} with \code{class(x) = 'hawkesNet_fit'} and the original events
+stored as \code{x$events}.}
 
-\item{type}{Which diagnostic plot to produce. Temporal: `count`, `dt`, `lambda`,
-`tau_hist`, `tau_qq`. Network: `size`, `edges_vs_nodes`, `degree_hist`,
-`degree_ccdf`.}
+\item{type}{Which diagnostic plot to produce. Temporal: \code{count}, \code{dt}, \code{lambda},
+\code{tau_hist}, \code{tau_qq}. Network: \code{size}, \code{edges_vs_nodes}, \code{degree_hist},
+\code{degree_ccdf}.}
 
-\item{params}{Optional named list of parameters. Required for `lambda`,
-`tau_hist`, and `tau_qq`.}
+\item{params}{Optional named list of parameters. Required for \code{lambda},
+\code{tau_hist}, and \code{tau_qq}.}
 
 \item{T_end}{Optional end time for temporal diagnostics.}
 
 \item{T0}{Start time for temporal diagnostics.}
 
-\item{net_init_fun}{Function returning an initial `network` for network diagnostics.}
+\item{net_init_fun}{Function returning an initial \code{network} for network diagnostics.}
 
 \item{net0}{Optional initial network override.}
 
 \item{net_step_fun}{Network update function for network diagnostics.}
 
-\item{loglog}{For `degree_ccdf`, plot on log-log axes.}
+\item{loglog}{For \code{degree_ccdf}, plot on log-log axes.}
 
 \item{...}{Passed through to diagnostic helpers.}
 }

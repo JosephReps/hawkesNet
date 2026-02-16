@@ -2,7 +2,7 @@
 % Please edit documentation in R/diagnostics_network.R
 \name{plot_network_diag}
 \alias{plot_network_diag}
-\title{Plot network diagnostics from `diag_network()`}
+\title{Plot network diagnostics from \code{diag_network()}}
 \usage{
 plot_network_diag(
   diag,
@@ -12,15 +12,15 @@ plot_network_diag(
 )
 }
 \arguments{
-\item{diag}{Output of `diag_network()`.}
+\item{diag}{Output of \code{diag_network()}.}
 
 \item{which}{Character vector of plots to show. Any of:
-`"size"`, `"edges_vs_nodes"`, `"degree_hist"`, `"degree_ccdf"`.}
+\code{"size"}, \code{"edges_vs_nodes"}, \code{"degree_hist"}, \code{"degree_ccdf"}.}
 
-\item{ask}{Logical; if `TRUE`, prompt between plots.}
+\item{ask}{Logical; if \code{TRUE}, prompt between plots.}
 
-\item{loglog}{Logical; for `"degree_ccdf"`, plot on log-log axes.}
+\item{loglog}{Logical; for \code{"degree_ccdf"}, plot on log-log axes.}
 }
 \description{
-Plot network diagnostics from `diag_network()`
+Plot network diagnostics from \code{diag_network()}
 }

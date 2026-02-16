@@ -7,11 +7,11 @@
 diag_temporal(events, params, T_end = NULL, T0 = 0)
 }
 \arguments{
-\item{events}{An events object created by `make_events()`. Must contain
-`events$times$t` (numeric event times).}
+\item{events}{An events object created by \code{make_events()}. Must contain
+\code{events$times$t} (numeric event times).}
 
 \item{params}{Named list of model parameters on the natural scale. Must
-contain `mu`, `K`, `beta`.}
+contain \code{mu}, \code{K}, \code{beta}.}
 
 \item{T_end}{Optional end time for diagnostics window. Defaults to last event.}
 
@@ -20,12 +20,12 @@ contain `mu`, `K`, `beta`.}
 \value{
 A list with components:
 \describe{
-  \item{t}{Event times.}
-  \item{dt}{Inter-arrival times (first is `t[1] - T0`).}
-  \item{lambda}{Temporal intensity evaluated just before each event time.}
-  \item{comp_inc}{Compensator increments over each gap (same length as `t`).}
-  \item{tau}{Time-rescaled increments (should be Exp(1) under correct temporal model).}
-  \item{meta}{List with `T0`, `T_end`, and basic checks.}
+\item{t}{Event times.}
+\item{dt}{Inter-arrival times (first is \code{t[1] - T0}).}
+\item{lambda}{Temporal intensity evaluated just before each event time.}
+\item{comp_inc}{Compensator increments over each gap (same length as \code{t}).}
+\item{tau}{Time-rescaled increments (should be Exp(1) under correct temporal model).}
+\item{meta}{List with \code{T0}, \code{T_end}, and basic checks.}
 }
 }
 \description{

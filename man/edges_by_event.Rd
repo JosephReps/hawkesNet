@@ -7,18 +7,18 @@
 edges_by_event(events)
 }
 \arguments{
-\item{events}{An events object created by `make_events()`.}
+\item{events}{An events object created by \code{make_events()}.}
 }
 \value{
-A list with one element per event. Element `[[k]]` is a data.frame of
-  edges for event `k` with columns `i` and `j` (plus any additional edge
-  attributes), excluding `event_id`. Events with zero edges return a 0-row
-  data.frame with the same columns.
+A list with one element per event. Element \verb{[[k]]} is a data.frame of
+edges for event \code{k} with columns \code{i} and \code{j} (plus any additional edge
+attributes), excluding \code{event_id}. Events with zero edges return a 0-row
+data.frame with the same columns.
 }
 \description{
 Split edges into per-event batches
 }
 \details{
-Edge endpoints `i` and `j` are coerced to character, and rows with missing or
+Edge endpoints \code{i} and \code{j} are coerced to character, and rows with missing or
 empty endpoints are dropped.
 }

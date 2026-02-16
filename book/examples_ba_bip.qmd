@@ -1,8 +1,23 @@
 {{< include _setup.qmd >}}
 
-# BA-Bipartite Examples
+# BA-Bipartite Kernel
+
+### Kernel Specification {.unnumbered}
+
+Nodes have two possible classifications / types / modes - events / perps.
+
+Each mark consists of exactly 1 new event node arriving, which connects to old 
+perp nodes according to the same degree-based weighting above. Additionally, 
+each mark consists of n ~ Pois(lambda_new) perp nodes, which are attached to the 
+new event node.
+
+### Simulation {.unnumbered}
 
 Simulate BIP-BA data.
+
+<div class="vcenter-cols">
+::: {.columns}
+::: {.column width="40%"}
 
 ```{r}
 set.seed(1)
@@ -23,23 +38,45 @@ sim <- sim_hawkesNet(
 )
 ```
 
-```{r}
-# Bipartite colouring
+:::
+::: {.column width="60%"}
+
+```{r fig.width=8, fig.height=8, out.width="100%", echo = FALSE}
 col_map <- c(
   event = "#377EB8",
   perp  = "#E41A1C"
 )
+
 roles <- network::get.vertex.attribute(sim$net, "role")
 cols <- col_map[roles]
 
+op <- par(no.readonly = TRUE)
+on.exit(par(op), add = TRUE)
+
+# Add a little bottom space for legend
+par(mar = c(2.5,1,1,1), xaxs = "i", yaxs = "i")
+
 plot(sim$net, vertex.col = cols)
+
+legend(
+  "bottomleft",
+  legend = c("Event", "Perp"),
+  pch = 21,
+  pt.bg = col_map[c("event", "perp")],  # fill colour
+  col = "black",                        # border colour
+  horiz = TRUE,
+  inset = 0.01,
+  xpd = TRUE,
+  cex = 2,
+  pt.cex = 2.5
+)
 ```
 
-```{r}
-print(paste("Number of simulated nodes:", nrow(sim$ev$nodes)))
-paste("Number of simulated edges:", nrow(sim$ev$edges))
-paste("Number of simulated events:", sim$events$n)
-```
+:::
+:::
+</div>
+
+### Model fitting {.unnumbered}
 
 Fit BIP-BA data.
 
@@ -70,6 +107,10 @@ Parameter values on the transformed scale:
 ```{r}
 fit$fit$par
 ```
+
+::: {.callout-note collapse="true"}
+## See the simulation study results for the BA-BIP kernel here.
+:::
 
 
 

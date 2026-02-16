@@ -12,26 +12,26 @@ diag_network(
 )
 }
 \arguments{
-\item{events}{An events object created by `make_events()`.}
+\item{events}{An events object created by \code{make_events()}.}
 
-\item{net_init_fun}{Function that returns an initial `network` object.}
+\item{net_init_fun}{Function that returns an initial \code{network} object.}
 
-\item{net0}{Optional initial network object (overrides `net_init_fun()`).}
+\item{net0}{Optional initial network object (overrides \code{net_init_fun()}).}
 
 \item{net_step_fun}{Function that updates the network after an event. Default
-is `net_add_event`.}
+is \code{net_add_event}.}
 }
 \value{
 A list with:
 \describe{
-  \item{series}{Data frame with one row per event: time, nodes_n, edges_n,
-  mean_degree, max_degree.}
-  \item{deg_final}{Degree vector at the final network state.}
-  \item{ccdf_final}{CCDF data frame for final degrees.}
+\item{series}{Data frame with one row per event: time, nodes_n, edges_n,
+mean_degree, max_degree.}
+\item{deg_final}{Degree vector at the final network state.}
+\item{ccdf_final}{CCDF data frame for final degrees.}
 }
 }
 \description{
 Replays the event sequence and tracks network size and simple network
-summaries over time. This is kernel-agnostic as long as `net_step_fun`
-updates the network using `(net, new_nodes, new_edges, t_k)`.
+summaries over time. This is kernel-agnostic as long as \code{net_step_fun}
+updates the network using \verb{(net, new_nodes, new_edges, t_k)}.
 }

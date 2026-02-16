@@ -10,18 +10,20 @@ book:
     logo: mini_BA_logo.png
   chapters:
     - index.qmd
-    - package_structure.qmd
-    - events.qmd
-    - simulation.qmd
-    - model_fitting.qmd
-    - diagnostics.qmd
+    - quick_start.qmd
+    - part: "Core Concepts"
+      chapters:
+      - events.qmd
+      - simulation.qmd
+      - model_fitting.qmd
+      - diagnostics.qmd
     - part: "Examples"
       chapters:
         - examples_ba.qmd
         - examples_cs.qmd
         - examples_ba_bip.qmd
         - examples_cs_bip.qmd
-    - part: "Custom kernels"
+    - part: "Writing Custom Kernels"
       chapters:
         - custom_pmf.qmd
         - custom_sim.qmd

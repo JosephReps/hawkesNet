@@ -20,24 +20,24 @@ fit_hawkesNet(
 )
 }
 \arguments{
-\item{events}{An events object created by `make_events()`.}
+\item{events}{An events object created by \code{make_events()}.}
 
 \item{params_init}{Named list of starting values for all model parameters.
-Must include the parameters required by the chosen `mark_type` (and any
-baseline/intensity parameters used by `loglik()`).}
+Must include the parameters required by the chosen \code{mark_type} (and any
+baseline/intensity parameters used by \code{loglik()}).}
 
 \item{fixed_params}{Character vector of parameter names to hold fixed at
-their `params_init` values.}
+their \code{params_init} values.}
 
 \item{transform}{Named character vector giving the working-scale transform
-for each parameter in `params_init` (e.g. `"log"`). Missing entries default
-to `"log"`. If `NULL`, all parameters default to `"log"`.}
+for each parameter in \code{params_init} (e.g. \code{"log"}). Missing entries default
+to \code{"log"}. If \code{NULL}, all parameters default to \code{"log"}.}
 
-\item{hessian}{Logical; if `TRUE`, return the Hessian from `optim()`.}
+\item{hessian}{Logical; if \code{TRUE}, return the Hessian from \code{optim()}.}
 
-\item{control}{List of control arguments passed to [stats::optim()].}
+\item{control}{List of control arguments passed to \code{\link[stats:optim]{stats::optim()}}.}
 
-\item{mark_type}{One of `"ba"`, `"cs"`, `"ba_bip"`, `"cs_bip"`.}
+\item{mark_type}{One of \code{"ba"}, \code{"cs"}, \code{"ba_bip"}, \code{"cs_bip"}.}
 
 \item{debug}{Logical; enable debug mode (passed through to likelihood/mark
 components where supported).}
@@ -46,18 +46,20 @@ components where supported).}
 
 \item{T0}{Start time for the likelihood window.}
 
+\item{formula_rhs}{}
+
 \item{...}{Additional arguments forwarded to the mark PMF / edge-probability
-functions used inside `loglik()`.}
+functions used inside \code{loglik()}.}
 }
 \value{
 A list with components:
 \describe{
-  \item{fit}{The `optim()` result (or `NULL` if all parameters are fixed).}
-  \item{par}{Named list of parameter estimates on the natural scale.}
-  \item{loglik}{Log-likelihood at `par`.}
-  \item{convergence}{`optim()` convergence code.}
-  \item{message}{`optim()` message (if any).}
-  \item{hessian}{Hessian matrix (only if `hessian = TRUE`).}
+\item{fit}{The \code{optim()} result (or \code{NULL} if all parameters are fixed).}
+\item{par}{Named list of parameter estimates on the natural scale.}
+\item{loglik}{Log-likelihood at \code{par}.}
+\item{convergence}{\code{optim()} convergence code.}
+\item{message}{\code{optim()} message (if any).}
+\item{hessian}{Hessian matrix (only if \code{hessian = TRUE}).}
 }
 }
 \description{

@@ -18,3 +18,16 @@ library(ernm)
 library(knitr)
 library(kableExtra)
 ```
+
+```{=html}
+<style>
+.vcenter-cols .columns {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.vcenter-cols .columns .column {
+  flex: 1 1 0;
+}
+</style>
+```

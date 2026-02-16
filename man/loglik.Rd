@@ -20,39 +20,39 @@ loglik(
 )
 }
 \arguments{
-\item{events}{An events object created by `make_events()`.}
+\item{events}{An events object created by \code{make_events()}.}
 
 \item{params}{Named list of model parameters on the natural scale. Must
-contain `mu`, `K`, and `beta`, plus any mark parameters required by
-`mark_type` (e.g. `beta_edges` for BA).}
+contain \code{mu}, \code{K}, and \code{beta}, plus any mark parameters required by
+\code{mark_type} (e.g. \code{beta_edges} for BA).}
 
 \item{T_end}{Optional end time for the likelihood window. Defaults to the
 last event time.}
 
 \item{T0}{Start time for the likelihood window.}
 
-\item{mark_type}{One of `"ba"`, `"cs"`, `"ba_bip"`.}
+\item{mark_type}{One of \code{"ba"}, \code{"cs"}, \code{"ba_bip"}.}
 
 \item{debug}{Logical; enable debug plotting (interactive; will pause each event).}
 
-\item{net_init_fun}{Function to initialize the pre-event network if `net0` is
-`NULL`. Defaults to `net_init`.}
+\item{net_init_fun}{Function to initialize the pre-event network if \code{net0} is
+\code{NULL}. Defaults to \code{net_init}.}
 
 \item{net0}{Optional initial network object to start recursion from.}
 
 \item{net_step_fun}{Function used to update the network after each event.
-Defaults to `net_add_event`.}
+Defaults to \code{net_add_event}.}
 
 \item{formula_rhs}{String, the CS kernel formula}
 
 \item{...}{Additional arguments forwarded to the mark PMF / edge-probability
-functions (e.g. `delta`, `model_cache`, etc.).}
+functions (e.g. \code{delta}, \code{model_cache}, etc.).}
 }
 \value{
-A numeric scalar log-likelihood. Returns `-Inf` for invalid parameter
-  values or if the likelihood is undefined.
+A numeric scalar log-likelihood. Returns \code{-Inf} for invalid parameter
+values or if the likelihood is undefined.
 }
 \description{
 Computes the log-likelihood for the observed event sequence under an
-exponential temporal Hawkes kernel and a chosen mark model (`mark_type`).
+exponential temporal Hawkes kernel and a chosen mark model (\code{mark_type}).
 }

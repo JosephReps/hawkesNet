@@ -18,6 +18,7 @@
 #' @param T0 Start time for the likelihood window.
 #' @param ... Additional arguments forwarded to the mark PMF / edge-probability
 #'   functions used inside `loglik()`.
+#' @param formula_rhs
 #'
 #' @return A list with components:
 #' \describe{
@@ -185,6 +186,7 @@ fit_hawkesNet <- function(events,
     message = fit$message,
     events = events
   )
+  out$call = match.call()
   if (hessian) out$hessian <- fit$hessian
   class(out) <- c("hawkesNet_fit", class(out))
 

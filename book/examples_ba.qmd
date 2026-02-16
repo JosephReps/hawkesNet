@@ -1,8 +1,21 @@
 {{< include _setup.qmd >}}
 
-# BA Examples
+# BA Kernel
 
-Simulate BA data.
+### Kernel Specification {.unnumbered}
+
+Each mark consists of exactly one new node, which has edges from that new node 
+to older nodes according to a normalized degree-based weighting.
+
+Will update this later.
+
+### Simulation {.unnumbered}
+
+Simulate BA data:
+
+<div class="vcenter-cols">
+::: {.columns}
+::: {.column width="40%"}
 
 ```{r}
 set.seed(1)
@@ -21,22 +34,21 @@ sim <- sim_hawkesNet(
   mark_type = "ba"
 )
 ```
+:::
+::: {.column width="60%"}
 
-```{r}
+```{r fig.width=8, fig.height=8, out.width="100%", echo = FALSE}
+op <- par(no.readonly = TRUE)
+on.exit(par(op), add = TRUE)
+
+par(mar = c(1,1,1,1), xaxs = "i", yaxs = "i")
 plot(sim$net)
 ```
-
-```{r}
-print(paste("Number of simulated nodes:", nrow(sim$ev$nodes)))
-paste("Number of simulated edges:", nrow(sim$ev$edges))
-paste("Number of simulated events:", sim$events$n)
-```
-
-:::callout-note
-After tweaking with the parameters a bit, it seems that the number of edges is
-usually just directly proportional to the number of nodes. Is this a sign 
-something is wrong?
 :::
+:::
+</div>
+
+### Model fitting {.unnumbered}
 
 Fit BA data.
 
@@ -70,6 +82,9 @@ And, we can also grab parameter values on the transformed scale:
 fit$fit$par
 ```
 
+::: {.callout-note collapse="true"}
+## See the simulation study results for the BA kernel here.
+:::
 
 
 

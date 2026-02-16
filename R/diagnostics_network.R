@@ -53,7 +53,7 @@ diag_network <- function(events,
                          net_init_fun = net_init,
                          net0 = NULL,
                          net_step_fun = net_add_event) {
-  validate_events(events)
+  # validate_events(events)
 
   if (is.null(events$times) || !"t" %in% names(events$times)) {
     stop("diag_network(): `events$times$t` is required.", call. = FALSE)

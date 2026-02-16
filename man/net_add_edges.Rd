@@ -15,7 +15,7 @@ columns will be treated as edge attributes.}
 \item{t_k}{numeric scalar, the event timestamp}
 }
 \value{
-Updated `network` object
+Updated \code{network} object
 }
 \description{
 Add edges to the network object

@@ -4,19 +4,19 @@
 \alias{hawkesnet-lik-args}
 \title{Common likelihood arguments}
 \arguments{
-\item{events}{An events object created by `make_events()`.}
+\item{events}{An events object created by \code{make_events()}.}
 
 \item{T_end}{Optional end time for the likelihood window. Defaults to the
 last event time.}
 
 \item{T0}{Start time for the likelihood window.}
 
-\item{mark_type}{One of `"ba"`, `"cs"`, `"ba_bip"`.}
+\item{mark_type}{One of \code{"ba"}, \code{"cs"}, \code{"ba_bip"}.}
 
 \item{debug}{Logical; enable debug plotting (interactive; will pause each event).}
 
 \item{...}{Additional arguments forwarded to the mark PMF / edge-probability
-functions (e.g. `delta`, `model_cache`, etc.).}
+functions (e.g. \code{delta}, \code{model_cache}, etc.).}
 }
 \description{
 Common likelihood arguments

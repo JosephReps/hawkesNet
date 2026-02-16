@@ -1,8 +1,18 @@
 {{< include _setup.qmd >}}
 
-# CS Examples
+# CS Kernel
+
+### Kernel Specification {.unnumbered}
+
+Will update this later.
+
+### Simulation {.unnumbered}
 
 Simulate CS data.
+
+<div class="vcenter-cols">
+::: {.columns}
+::: {.column width="40%"}
 
 ```{r}
 set.seed(1)
@@ -24,25 +34,27 @@ sim <- sim_hawkesNet(
   params = params_cs_true,
   T_end = time,
   mark_type = "cs",
-  # formula_rhs = "edges + triangles() + star(c(2,3))",
+  # formula_rhs = "edges + triangles() 
+  # + star(c(2,3))",
   formula_rhs = "star(c(2,3))"
 )
 ```
-
-:::callout-note
-Need to discuss the `triangles()` parameter. I think the current calculation of
-change statistics for triangles is incorrect.
 :::
+::: {.column width="60%"}
 
-```{r}
+```{r fig.width=8, fig.height=8, out.width="100%", echo = FALSE}
+op <- par(no.readonly = TRUE)
+on.exit(par(op), add = TRUE)
+
+par(mar = c(1,1,1,1), xaxs = "i", yaxs = "i")
 plot(sim$net)
 ```
+:::
+:::
+</div>
 
-```{r}
-print(paste("Number of simulated nodes:", nrow(sim$ev$nodes)))
-paste("Number of simulated edges:", nrow(sim$ev$edges))
-paste("Number of simulated events:", sim$events$n)
-```
+### Model fitting {.unnumbered}
+
 
 Fit CS data. 
 
@@ -80,14 +92,6 @@ Parameter values on the fitted scale:
 ```{r}
 unlist(fit$par)
 ```
-
-:::callout-note
-You might notice the estimates for `beta` and `K` are not great. I tried 
-increasing `time` which didn't help (actually made it worse?).
-
-Will definitely be doing some sensitivity testing / experimentation once I've
-implemented Duncan's supercharged model fitting.
-:::
 
 Parameter values on the transformed scale:
 

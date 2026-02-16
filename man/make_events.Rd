@@ -5,47 +5,76 @@
 \title{Create a marked network-growth event stream}
 \usage{
 make_events(
-  nodes = NULL,
   edges,
+  nodes = NULL,
   allow_implicit_birth = TRUE,
   allow_multi_edges = FALSE,
-  state0 = state_init()
+  initial_network = net_init()
 )
 }
 \arguments{
-\item{nodes}{Optional data.frame with columns `id`, `time`.
-Additional columns are allowed and will be preserved.}
+\item{edges}{data.frame with columns \code{i}, \code{j}, \code{time}. Extra columns allowed.}
 
-\item{edges}{data.frame with columns `i`, `j`, `time`.
-Additional columns are allowed and will be preserved.
-(May be empty but must be provided.)}
+\item{nodes}{Optional data.frame with columns \code{id}, \code{time}. Extra columns allowed.}
 
-\item{allow_implicit_birth}{Logical; if TRUE (default), endpoints missing from `nodes`
-and missing from `state0` are treated as born at their first incident edge time.}
+\item{allow_implicit_birth}{Logical; if TRUE (default), endpoints missing from
+\code{nodes} and missing from \code{initial_network} are treated as born at their first
+incident edge time.}
 
 \item{allow_multi_edges}{Logical; if FALSE (default), an undirected edge may be added at most once.}
 
-\item{state0}{Optional initial state (e.g., from `make_state()`), used only to
-define baseline nodes and their birth times for validation. Must be a state
-list with at least `born` (named numeric) or `deg` (named integer).}
+\item{initial_network}{Optional baseline \code{network} object used for validation only.}
 }
 \value{
-An object of class `hg_events` with data.frames `times`, `nodes`, `edges`.
+An object of class \code{events} with data.frames \code{times}, \code{nodes}, \code{edges}.
 }
 \description{
-This package models a growing network as a sequence of **event times**.
-At each time, two things may happen:
-1) Node arrivals (possibly zero)
-2) Edge additions (possibly zero)
+Construct an event stream from timestamped node arrivals and edge additions.
+Baseline nodes can be provided via \code{initial_network} for validation only (they
+are not added as events).
 }
 \details{
-The event stream is constructed from timestamped `nodes` and `edges`.
-Optionally, you may provide an initial baseline network state `state0`
-(built by `make_state()`), which defines nodes that already exist at the
-observation start. Baseline nodes in `state0` are treated as *known endpoints*
-for validation, but they are NOT added as events.
+Extra columns in \code{nodes} and \code{edges} are preserved and passed to the internal
+network object as vertex and edge attributes. The returned object uses
+\code{event_id} (index into \code{times}) rather than raw \code{time} columns.
+\subsection{Input contract (requirements)}{
 
-Extra columns in `nodes` and `edges` are preserved and carried through into the
-returned `hg_events` object. In the returned object, `time` is replaced by
-`event_id` (an integer index into `times`).
+The following requirements are enforced via errors (and covered by tests):
+
+\strong{edges}
+\itemize{
+\item \code{edges} must be provided (may be empty), and be coercible to a data.frame.
+\item Must contain columns: \code{i}, \code{j}, \code{time}.
+\item \code{i} and \code{j} must be non-missing, non-empty (after coercion to character).
+\item No self-loops: \code{i != j}.
+\item \code{time} must be finite numeric.
+\item If \code{allow_multi_edges = FALSE} (default), each undirected edge \verb{\{i,j\}} may
+appear at most once (duplicates after undirected canonicalization error).
+}
+
+\strong{nodes}
+\itemize{
+\item If supplied, \code{nodes} must have columns: \code{id}, \code{time} (extra cols allowed).
+\item \code{id} must be non-missing, non-empty (after coercion to character) and unique.
+\item \code{time} must be finite numeric.
+}
+
+\strong{initial_network}
+\itemize{
+\item \code{initial_network} must be a \code{network} object (or NULL).
+\item Baseline node ids (vertex names) must not also appear in \code{nodes$id}
+(one-way input: baseline in \code{initial_network}, arrivals in \code{nodes}).
+\item If \code{initial_network} has vertex attribute \code{"born"}, it must be numeric
+and finite for all baseline nodes (used for edge-after-birth validation).
+If absent, baseline nodes are treated as born at \code{-Inf}.
+}
+
+\strong{cross-constraints}
+\itemize{
+\item If \code{allow_implicit_birth = FALSE}, every edge endpoint must appear in
+\code{nodes$id} or \code{initial_network}.
+\item Every edge must occur after both endpoints are born (from \code{nodes} times
+and baseline \code{"born"} times, or \code{-Inf} if not provided).
+}
+}
 }

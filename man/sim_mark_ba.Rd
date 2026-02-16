@@ -17,7 +17,7 @@ sim_mark_ba(net, t_k, params, delta = 0.001, new_node_id = NULL)
 (useful for tests). If NULL, generated from state.}
 }
 \value{
-list(arrivals = <chr>, edges = data.frame(i,j))
+list(arrivals = \if{html}{\out{<chr>}}, edges = data.frame(i,j))
 }
 \description{
 Paper BA: exactly one arriving node at each accepted event time.

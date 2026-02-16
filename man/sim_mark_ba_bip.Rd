@@ -22,15 +22,17 @@ list(arrivals = <data.frame(id, role)>, edges = <data.frame(i,j)>)
 }
 \description{
 Strict BA-bip generative story:
-- Exactly 1 new EVENT node arrives at each accepted event time.
-- Additionally, K new PERP nodes arrive, with K ~ Poisson(lambda_new).
-- Deterministic edges: new_event -- each new_perp.
-- Bernoulli edges: new_event -- each OLD perp i independently with probability p_i,
-  where p_i is proportional to (deg_i + delta) * exp(-beta_edges * age_i),
-  normalized over OLD perp nodes only.
+\itemize{
+\item Exactly 1 new EVENT node arrives at each accepted event time.
+\item Additionally, K new PERP nodes arrive, with K ~ Poisson(lambda_new).
+\item Deterministic edges: new_event -- each new_perp.
+\item Bernoulli edges: new_event -- each OLD perp i independently with probability p_i,
+where p_i is proportional to (deg_i + delta) * exp(-beta_edges * age_i),
+normalized over OLD perp nodes only.
+}
 }
 \details{
-This is the network-based version (net stores vertex attrs `time` and `role`).
-The return format matches sim_mark_ba(): `arrivals` is a data.frame of new nodes,
-and `edges` is a data.frame of new edges.
+This is the network-based version (net stores vertex attrs \code{time} and \code{role}).
+The return format matches sim_mark_ba(): \code{arrivals} is a data.frame of new nodes,
+and \code{edges} is a data.frame of new edges.
 }

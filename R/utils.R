@@ -12,7 +12,8 @@
 create_net_from_events <- function(events,
                                    net_init_fun = net_init,
                                    net0 = NULL,
-                                   net_step_fun = net_add_event) {
+                                   net_step_fun = net_add_event,
+                                   debug = FALSE) {
   #
   arrivals <- nodes_by_event(events)
   edges <- edges_by_event(events)
@@ -28,6 +29,11 @@ create_net_from_events <- function(events,
     new_edges <- edges[[idx]]
 
     net <- net_step_fun(net, new_nodes, new_edges, t_k)
+
+    if (debug == TRUE) {
+      plot(net)
+      readline("Press Enter / Return to continue to next event...")
+    }
   }
 
   return(net)

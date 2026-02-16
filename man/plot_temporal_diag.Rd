@@ -2,7 +2,7 @@
 % Please edit documentation in R/diagnostics_temporal.R
 \name{plot_temporal_diag}
 \alias{plot_temporal_diag}
-\title{Plot temporal diagnostics from `diag_temporal()`}
+\title{Plot temporal diagnostics from \code{diag_temporal()}}
 \usage{
 plot_temporal_diag(
   diag,
@@ -11,13 +11,13 @@ plot_temporal_diag(
 )
 }
 \arguments{
-\item{diag}{Output of `diag_temporal()`.}
+\item{diag}{Output of \code{diag_temporal()}.}
 
 \item{which}{Character vector of plots to show. Any of:
-`"count"`, `"dt"`, `"lambda"`, `"tau_hist"`, `"tau_qq"`.}
+\code{"count"}, \code{"dt"}, \code{"lambda"}, \code{"tau_hist"}, \code{"tau_qq"}.}
 
-\item{ask}{Logical; if `TRUE`, prompt between plots.}
+\item{ask}{Logical; if \code{TRUE}, prompt between plots.}
 }
 \description{
-Plot temporal diagnostics from `diag_temporal()`
+Plot temporal diagnostics from \code{diag_temporal()}
 }

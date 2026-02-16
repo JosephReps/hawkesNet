@@ -51,9 +51,9 @@
 </style>
 ```
 
-# Package Structure
+# Quick Start
 
-The core flow is:
+The typical workflow is:
 
 ```{=html}
 <div class="pipeline-card">
@@ -61,7 +61,6 @@ The core flow is:
     <div class="pipeline-step">
       <div class="pipeline-title">Input data</div>
       <div class="pipeline-sub">Two data frames: node arrivals + edge arrivals.</div>
-      <div class="pipeline-code">nodes(id, time, …)<br/>edges(i, j, time, …)</div>
     </div>
 
     <div class="pipeline-arrow">→</div>
@@ -69,7 +68,6 @@ The core flow is:
     <div class="pipeline-step">
       <div class="pipeline-title">make_events()</div>
       <div class="pipeline-sub">Normalises times and builds event-indexed tables.</div>
-      <div class="pipeline-code">times<br/>nodes<br/>edges</div>
     </div>
 
     <div class="pipeline-arrow">→</div>
@@ -77,49 +75,81 @@ The core flow is:
     <div class="pipeline-step">
       <div class="pipeline-title">fit_hawkesNet()</div>
       <div class="pipeline-sub">Choose a kernel (BA / CS / bipartite) and fit.</div>
-      <div class="pipeline-code">fit$par<br/>plot(fit)</div>
     </div>
   </div>
 </div>
 ```
 
-## What goes where?
-
-- **This page**: big-picture workflow and “how to think about the package”.
-- **Events page**: the exact data-frame specs and the `events` object structure
-  (see the dedicated *Events* chapter for full details).
-
-## Minimal workflow
+If you haven't already, install the package:
 
 ```{r eval = FALSE}
-# 1) Provide nodes + edges as data frames
-nodes <- data.frame(id = 1:10, time = 0:9)
+# install.packages("devtools")
+devtools::install_github("JosephReps/hawkesNet")
+```
+
+### Input Data {.unnumbered}
+
+Data should be consist of:
+
+1. An `edges` data frame, requiring columns `i`, `j` and `time`.
+2. Optionally a `nodes` data frame, requiring columns `id` and `time`.
+
+```{r}
 edges <- data.frame(
-  i = c(1,1,3,4,4,5,3,7,6,8),
-  j = c(2,3,2,1,2,1,6,2,5,1),
-  time = 2:11
+  i = c(1,1,3,1,4,1,4,2,9),
+  j = c(2,3,4,5,6,7,8,9,10),
+  time = 1:9
 )
 
-# 2) Convert to an events object
-ev <- make_events(nodes = nodes, edges = edges)
+nodes <- data.frame(id = 1:10, time = 0:9)
+```
 
-# 3) Fit a kernel
+### Construct events {.unnumbered}
+
+Construct the events object using the `make_events()` function:
+
+```{r}
+ev <- make_events(nodes = nodes, edges = edges)
+```
+
+::: {.callout-note collapse="true"}
+## More information on events & data structure here.
+:::
+
+### Fit model {.unnumbered}
+
+Fit the data using an appropriate kernel:
+
+```{r results = FALSE}
 fit <- fit_hawkesNet(
   ev = ev,
   params_init = list(mu = 1, K = 1, beta = 1, beta_edges = 1),
   mark_type = "ba"
 )
+```
 
-plot(fit)
+:::callout-warning
+Need to implement!
+:::
+
+```{r eval = FALSE}
+summary(fit)
 ```
 
 ::: {.callout-note collapse="true"}
-## Why events-first?
-
-- Data frames are easier to validate, transform, and keep aligned with your
-  “real” dataset than mutating a `network` object directly.
-- `make_events()` gives you an inspectable, stable intermediate representation
-  that is used throughout simulation + fitting.
-- For large fits, the likelihood is implemented to build the network once and
-  then reuse cached structures during optimisation.
+## More information on model fitting here.
 :::
+
+### Diagnostics {.unnumbered}
+
+View model fit diagnostics.
+
+```{r fig.height=3}
+par(mfrow=c(1,2))
+plot(fit, type = "tau_qq")
+plot(fit, type = "degree_hist")
+```
+
+
+
+

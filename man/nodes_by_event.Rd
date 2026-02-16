@@ -7,13 +7,13 @@
 nodes_by_event(events)
 }
 \arguments{
-\item{events}{An events object created by `make_events()`.}
+\item{events}{An events object created by \code{make_events()}.}
 }
 \value{
-A list with one element per event. Element `[[k]]` is a data.frame of
-  nodes for event `k` with column `id` (plus any additional node
-  attributes), excluding `event_id`. Events with zero nodes return a 0-row
-  data.frame with the same columns.
+A list with one element per event. Element \verb{[[k]]} is a data.frame of
+nodes for event \code{k} with column \code{id} (plus any additional node
+attributes), excluding \code{event_id}. Events with zero nodes return a 0-row
+data.frame with the same columns.
 }
 \description{
 Split nodes into per-event batches

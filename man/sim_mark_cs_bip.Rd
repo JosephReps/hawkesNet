@@ -24,8 +24,10 @@ list(arrivals=data.frame(id,role), edges=data.frame(i,j), model_cache=...)
 }
 \description{
 Rules (BA-bip style):
-- exactly 1 new "event" node
-- K_new new "perp" nodes, K_new ~ Poisson(lambda_new)
-- deterministic edges: event -- each new perp
-- optional edges: event -- each OLD perp with CS probability
+\itemize{
+\item exactly 1 new "event" node
+\item K_new new "perp" nodes, K_new ~ Poisson(lambda_new)
+\item deterministic edges: event -- each new perp
+\item optional edges: event -- each OLD perp with CS probability
+}
 }

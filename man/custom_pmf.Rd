@@ -24,20 +24,20 @@ columns will be treated as edge attributes.}
 \value{
 A list with:
 \describe{
-  \item{logp}{Scalar log probability of observing `new_edges` (and any other
-  mark components) at this event.}
-  \item{edge_probs}{Named numeric vector (or matrix) of attachment
-  probabilities for eligible targets. This is returned for debugging /
-  diagnostics and may be `NULL` if not meaningful for the kernel.}
-  \item{model_cache}{Optional updated cache object (useful for expensive mark
-  models). Include only if you accept/use a cache via `...`.}
+\item{logp}{Scalar log probability of observing \code{new_edges} (and any other
+mark components) at this event.}
+\item{edge_probs}{Named numeric vector (or matrix) of attachment
+probabilities for eligible targets. This is returned for debugging /
+diagnostics and may be \code{NULL} if not meaningful for the kernel.}
+\item{model_cache}{Optional updated cache object (useful for expensive mark
+models). Include only if you accept/use a cache via \code{...}.}
 }
 }
 \description{
 This is a minimal skeleton for implementing a custom mark kernel. A mark
 kernel assigns a probability to the observed edge set for a single event at
-time `t_k`, conditional on the pre-event network `net` and the event mark
-(`new_nodes`, `new_edges`).
+time \code{t_k}, conditional on the pre-event network \code{net} and the event mark
+(\code{new_nodes}, \code{new_edges}).
 }
 \examples{
 # See log_pmf_ba() for a working implementation.
