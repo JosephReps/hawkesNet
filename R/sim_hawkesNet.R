@@ -81,11 +81,13 @@ sim_hawkesNet <- function(
     cache_prop <- time_cache_step(cache, t_prop, beta = beta)
     lambda_prop <- temporal_intensity_from_cache(cache_prop, mu = mu, K = K, beta = beta)
 
+    accepted <- FALSE
     a <- lambda_prop / M
     accept_probs <- c(accept_probs, a)
     if (debug) message("t=", t_prop, " M=", M, " lambda=", lambda_prop, " a=", a)
 
     if (stats::runif(1) < a) {
+      accepted <- TRUE
       # accepted: sample mark given *pre-event* state at t_prop
       if (mark_type %in% c("cs", "cs_bip")) {
         mk <- sim_mark_fun(net = net, t_k = t_prop, params = params, model_cache = cs_model_cache, ...)
@@ -138,12 +140,18 @@ sim_hawkesNet <- function(
       # Hawkes jump at an accepted event (event-driven ground process)
       cache_prop$S <- cache_prop$S + 1
       events_t <- c(events_t, t_prop)
+
+      lambda_after <- temporal_intensity_from_cache(cache_prop, mu = mu, K = K, beta = beta)
     }
 
     # advance time regardless; update cache + bound for next iteration
     t <- t_prop
     cache <- cache_prop
-    M <- lambda_prop
+    if (accepted) {
+      M <- lambda_after
+    } else {
+      M <- lambda_prop
+    }
   }
 
   out <- list(

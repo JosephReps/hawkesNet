@@ -39,6 +39,71 @@ create_net_from_events <- function(events,
   return(net)
 }
 
+# TODO: Only done half review, clean this up more
+#' Title
+#'
+#' Preserves network attributes. Defaults to expecting "time" as edge / vertex
+#' attribute for event / birth time.
+#'
+#' @param net
+#' @param node_time_attr
+#' @param edge_time_attr
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+create_events_from_net <- function(net,
+                                   node_time_attr = "time",
+                                   edge_time_attr = "time",
+                                   ...) {
+  if (!inherits(net, "network")) stop("`net` must be a `network` object.")
+
+  # Create nodes data frame
+  node_time_attr <- match.arg(node_time_attr)
+  ids <- as.character(network::network.vertex.names(net))
+  n <- length(ids)
+
+  node_time <- network::get.vertex.attribute(net, node_time_attr)
+
+  if (is.null(node_time) && n > 0L) {
+    stop("`net` must have a vertex attribute 'time' or 'born' giving node birth times.")
+  }
+
+  nodes <- if (n == 0L) {
+    data.frame(id = character(0), time = numeric(0))
+  } else {
+    data.frame(id = ids, time = as.numeric(node_time), stringsAsFactors = FALSE)
+  }
+
+  v_attrs <- setdiff(network::list.vertex.attributes(net), node_time_attr)
+  for (a in v_attrs) nodes[[a]] <- network::get.vertex.attribute(net, a)
+
+  # Create edges data frame
+  edge_time_attr <- match.arg(edge_time_attr)
+
+  edf <- network::as.data.frame.network(net, "edges")
+  # edf typically has columns: tail, head, and any edge attrs
+  if (nrow(edf) == 0L) {
+    edges <- data.frame(i = character(0), j = character(0), time = numeric(0))
+  } else {
+    edges <- data.frame(
+      i = as.character(edf$`.tail`),
+      j = as.character(edf$`.head`),
+      time = as.numeric(edf[[edge_time_attr]]),
+      stringsAsFactors = FALSE
+    )
+
+    # keep extra edge attributes too (optional)
+    extra <- setdiff(names(edf), c("tail", "head", edge_time_attr))
+    for (a in extra) edges[[a]] <- edf[[a]]
+  }
+
+  make_events(edges = edges, nodes = nodes, ...)
+}
+
+
 # tiny helper (so we don't need rlang)
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
