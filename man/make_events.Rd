@@ -54,7 +54,7 @@ appear at most once (duplicates after undirected canonicalization error).
 
 \strong{nodes}
 \itemize{
-\item If supplied, \code{nodes} must have columns: \code{id}, \code{time} (extra cols allowed).
+\item If supplied, \code{nodes} must have columns: \code{id}, \code{time}.
 \item \code{id} must be non-missing, non-empty (after coercion to character) and unique.
 \item \code{time} must be finite numeric.
 }
@@ -62,9 +62,8 @@ appear at most once (duplicates after undirected canonicalization error).
 \strong{initial_network}
 \itemize{
 \item \code{initial_network} must be a \code{network} object (or NULL).
-\item Baseline node ids (vertex names) must not also appear in \code{nodes$id}
-(one-way input: baseline in \code{initial_network}, arrivals in \code{nodes}).
-\item If \code{initial_network} has vertex attribute \code{"born"}, it must be numeric
+\item Baseline node ids (vertex names) must not also appear in \code{nodes$id}.
+\item If \code{initial_network} has vertex attribute \code{"time"}, it must be numeric
 and finite for all baseline nodes (used for edge-after-birth validation).
 If absent, baseline nodes are treated as born at \code{-Inf}.
 }

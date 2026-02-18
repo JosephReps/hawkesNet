@@ -8,7 +8,8 @@ create_net_from_events(
   events,
   net_init_fun = net_init,
   net0 = NULL,
-  net_step_fun = net_add_event
+  net_step_fun = net_add_event,
+  debug = FALSE
 )
 }
 \arguments{
