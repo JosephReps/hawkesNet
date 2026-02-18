@@ -169,10 +169,10 @@ compensator_inc_exp <- function(dt, mu, K, beta, S_post_prev) {
 
       ll_time <- ll_time + log(lambda_g)
 
-      net <- net_step_fun(net, new_nodes, new_edges, t_k)
-
       # Debug plot (two panels)
       if (isTRUE(debug)) {
+        net <- net_step_fun(net, new_nodes, new_edges, t_k)
+
         .debug_plot_step(net, debug_layout, t_k, 0, ll_time, ll_time + mark_ll_total, new_nodes,
                          new_edges, event_id = events$times$event_id[idx], edge_probs = NULL)
         readline("Press Enter / Return to continue to next event...")
