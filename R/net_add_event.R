@@ -13,3 +13,16 @@ net_add_event <- function(net, new_nodes, new_edges, t_k) {
   }
   net
 }
+
+#' Initialize the network-state object
+#'
+#' @return a network object
+#' @export
+#'
+#' @examples
+net_init <- function() {
+  net <- network::network.initialize(0, directed = FALSE)
+
+  return(net)
+}
+

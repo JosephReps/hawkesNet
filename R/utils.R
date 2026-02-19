@@ -39,7 +39,6 @@ create_net_from_events <- function(events,
   return(net)
 }
 
-# TODO: Only done half review, clean this up more
 #' Title
 #'
 #' Preserves network attributes. Defaults to expecting "time" as edge / vertex

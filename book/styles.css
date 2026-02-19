@@ -1,0 +1,103 @@
+@media (min-width: 992px) {
+  body.floating .page-columns {
+    grid-template-columns:
+      [screen-start] 1.5em
+      [screen-start-inset] 5fr
+      [page-start] minmax(25px, 50px)
+      [page-start-inset] minmax(50px, 150px)
+      [body-start-outset] minmax(25px, 50px)
+      [body-start] 1.5em
+      [body-content-start] minmax(500px, calc(1000px - 3em))  /* was 800px */
+      [body-content-end] 1.5em
+      [body-end] minmax(25px, 50px)
+      [body-end-outset] minmax(50px, 150px)
+      [page-end-inset] minmax(25px, 50px)
+      [page-end] 5fr
+      [screen-end-inset] 1.5em
+      [screen-end];
+  }
+}
+
+/* Table styling */
+
+/* GitHub-ish tables */
+table.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #d0d7de;
+  overflow: hidden;
+  font-size: 0.95rem;
+  table-layout: fixed;
+  width: 100%;
+}
+
+table.table thead th {
+  background: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+}
+
+table.table td, table.table th {
+  padding: 0.45rem 0.7rem;
+  vertical-align: top;
+}
+
+table.table code {
+  font-size: 0.9em;
+}
+
+/* Force first 3 columns to fixed width */
+table colgroup col:nth-child(1),
+table colgroup col:nth-child(2) {
+  width: 195px !important;
+}
+
+table colgroup col:nth-child(n+3) {
+  width: auto !important;
+}
+
+/* Add vertical borders between columns */
+table.table th,
+table.table td {
+  border-right: 1px solid #d0d7de;
+}
+
+/* Remove border on last column so it doesn't double */
+table.table th:last-child,
+table.table td:last-child {
+  border-right: none;
+}
+
+/* Fix ugly purple code */
+/* Inline code: keep monospace + background, remove purple */
+p code, li code, td code, span code {
+  color: #111 !important;          /* or #24292f for GitHub vibe */
+  background-color: #f6f8fa !important;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+
+/* Inline code inside headings */
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+  color: #111 !important;
+  background-color: #f6f8fa !important;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+
+/* Center images in Quarto */
+.quarto-figure,
+figure {
+  display: flex;
+  justify-content: center;
+}
+
+.quarto-figure img,
+figure img,
+.quarto-figure svg,
+figure svg {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}

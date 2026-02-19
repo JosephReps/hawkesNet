@@ -17,7 +17,7 @@ book:
       - simulation.qmd
       - model_fitting.qmd
       - diagnostics.qmd
-    - part: "Examples"
+    - part: "Kernels & Examples"
       chapters:
         - examples_ba.qmd
         - examples_cs.qmd
@@ -43,6 +43,7 @@ format:
     toc: true
     code-fold: false
     code-tools: false
+    css: styles.css
 
 execute:
   echo: true

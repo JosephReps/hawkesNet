@@ -105,7 +105,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-sidebar floating quarto-light">
@@ -195,7 +225,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Examples</span></a>
+ <span class="menu-text">Kernels &amp; Examples</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -318,16 +348,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#input-data-frames" id="toc-input-data-frames" class="nav-link active" data-scroll-target="#input-data-frames"><span class="header-section-number">2.1</span> Input data frames</a>
+  <li><a href="#input-data-frames" id="toc-input-data-frames" class="nav-link active" data-scroll-target="#input-data-frames">Input data frames</a>
   <ul class="collapse">
-  <li><a href="#nodes" id="toc-nodes" class="nav-link" data-scroll-target="#nodes"><span class="header-section-number">2.1.1</span> <code>nodes</code></a></li>
-  <li><a href="#edges" id="toc-edges" class="nav-link" data-scroll-target="#edges"><span class="header-section-number">2.1.2</span> <code>edges</code></a></li>
+  <li><a href="#edges" id="toc-edges" class="nav-link" data-scroll-target="#edges"><code>edges</code></a></li>
+  <li><a href="#nodes" id="toc-nodes" class="nav-link" data-scroll-target="#nodes"><code>nodes</code></a></li>
   </ul></li>
-  <li><a href="#make_events-api" id="toc-make_events-api" class="nav-link" data-scroll-target="#make_events-api"><span class="header-section-number">2.2</span> <code>make_events()</code> API</a></li>
-  <li><a href="#what-make_events-returns" id="toc-what-make_events-returns" class="nav-link" data-scroll-target="#what-make_events-returns"><span class="header-section-number">2.3</span> What <code>make_events()</code> returns</a></li>
-  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">2.4</span> Example</a>
+  <li><a href="#creating-events-objects" id="toc-creating-events-objects" class="nav-link" data-scroll-target="#creating-events-objects">Creating events objects</a>
   <ul class="collapse">
-  <li><a href="#implicit-births-from-edges" id="toc-implicit-births-from-edges" class="nav-link" data-scroll-target="#implicit-births-from-edges"><span class="header-section-number">2.4.1</span> Implicit births from edges</a></li>
+  <li><a href="#make_events" id="toc-make_events" class="nav-link" data-scroll-target="#make_events"><code>make_events()</code></a></li>
+  <li><a href="#return-value" id="toc-return-value" class="nav-link" data-scroll-target="#return-value">Return value</a></li>
+  </ul></li>
+  <li><a href="#helpers" id="toc-helpers" class="nav-link" data-scroll-target="#helpers">Helpers</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a>
+  <ul class="collapse">
+  <li><a href="#standard" id="toc-standard" class="nav-link" data-scroll-target="#standard">Standard</a></li>
+  <li><a href="#implicit-births-from-edges" id="toc-implicit-births-from-edges" class="nav-link" data-scroll-target="#implicit-births-from-edges">Implicit births from edges</a></li>
+  <li><a href="#node-edge-attributes" id="toc-node-edge-attributes" class="nav-link" data-scroll-target="#node-edge-attributes">Node &amp; edge attributes</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -354,11 +390,80 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<style>
+.vcenter-cols .columns {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.vcenter-cols .columns .column {
+  flex: 1 1 0;
+}
+</style>
 <p><code>hawkesNet</code> is <strong>events-first</strong>. Instead of converting your data into a <code>network</code> object up-front, you provide <strong>node arrivals</strong> and <strong>edge arrivals</strong> as data frames, then call <code>make_events()</code> to convert them into the internal <code>events</code> representation used by simulation and fitting.</p>
-<section id="input-data-frames" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="input-data-frames"><span class="header-section-number">2.1</span> Input data frames</h2>
-<section id="nodes" class="level3" data-number="2.1.1">
-<h3 data-number="2.1.1" class="anchored" data-anchor-id="nodes"><span class="header-section-number">2.1.1</span> <code>nodes</code></h3>
+<section id="input-data-frames" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="input-data-frames">Input data frames</h2>
+<p>As stated, the two inputs are an <code>edges</code> and a <code>nodes</code> data frame.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <code>nodes</code> data frame is not required. Node arrival times can be inferred from the edge alone (make sure <code>allow_implicit_births = TRUE</code> when using <code>make_events()</code>). However, if you only pass <code>edges</code>, you <strong>cannot</strong> represent edgeless node arrivals, as the node only exists when it first appears in an edge.</p>
+</div>
+</div>
+<section id="edges" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="edges"><code>edges</code></h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Meaning</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>i</code></td>
+<td>character / integer</td>
+<td>Tail/endpoint node id</td>
+<td>Together with <code>j</code> identifies an edge between two nodes.</td>
+</tr>
+<tr class="even">
+<td><code>j</code></td>
+<td>character / integer</td>
+<td>Head/endpoint node id</td>
+<td>Current <code>hawkesNet</code> kernels treat edges as <strong>undirected</strong> (order doesn’t matter).</td>
+</tr>
+<tr class="odd">
+<td><code>time</code></td>
+<td>numeric</td>
+<td>Edge arrival time</td>
+<td>Must be <span class="math inline">\(\ge\)</span> both endpoint birth times in <code>nodes</code> (if provided).</td>
+</tr>
+<tr class="even">
+<td><code>...</code></td>
+<td>any</td>
+<td>Extra edge attributes</td>
+<td>Carried through as edge attributes in the underlying network during fitting.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="nodes" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="nodes"><code>nodes</code></h3>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -390,11 +495,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>role</code> (optional)</td>
 <td>character</td>
-<td>Node role/type (e.g.&nbsp;<code>"event"</code>, <code>"perp"</code>)</td>
+<td>Node role/type <br> (e.g.&nbsp;<code>"event"</code>, <code>"perp"</code>)</td>
 <td>Required for bipartite kernels (e.g.&nbsp;<code>*_bip</code>) if your mark model distinguishes node types.</td>
 </tr>
 <tr class="even">
-<td><em>(anything else)</em></td>
+<td><code>...</code></td>
 <td>any</td>
 <td>Extra node attributes</td>
 <td>Carried through as vertex attributes in the underlying network during fitting.</td>
@@ -402,54 +507,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="edges" class="level3" data-number="2.1.2">
-<h3 data-number="2.1.2" class="anchored" data-anchor-id="edges"><span class="header-section-number">2.1.2</span> <code>edges</code></h3>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Column</th>
-<th>Type</th>
-<th>Meaning</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>i</code></td>
-<td>character / integer</td>
-<td>Tail/endpoint node id</td>
-<td>Together with <code>j</code> identifies an edge between two nodes.</td>
-</tr>
-<tr class="even">
-<td><code>j</code></td>
-<td>character / integer</td>
-<td>Head/endpoint node id</td>
-<td>Current hawkesNet kernels treat edges as <strong>undirected</strong> (order doesn’t matter).</td>
-</tr>
-<tr class="odd">
-<td><code>time</code></td>
-<td>numeric</td>
-<td>Edge arrival time</td>
-<td>Must be () both endpoint birth times (if provided).</td>
-</tr>
-<tr class="even">
-<td><em>(anything else)</em></td>
-<td>any</td>
-<td>Extra edge attributes</td>
-<td>Carried through as edge attributes in the underlying network during fitting.</td>
-</tr>
-</tbody>
-</table>
 </section>
-</section>
-<section id="make_events-api" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="make_events-api"><span class="header-section-number">2.2</span> <code>make_events()</code> API</h2>
+<section id="creating-events-objects" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="creating-events-objects">Creating events objects</h2>
+<section id="make_events" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="make_events"><code>make_events()</code></h3>
+<p>You can create events objects used for fitting by using the <code>make_events()</code> function.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -486,22 +549,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>If you <em>only</em> pass <code>edges</code> (implicit births), you <strong>cannot represent edgeless node arrivals</strong>—because the node only “exists” when it first appears in an edge.</p>
-</div>
-</div>
 </section>
-<section id="what-make_events-returns" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="what-make_events-returns"><span class="header-section-number">2.3</span> What <code>make_events()</code> returns</h2>
+<section id="return-value" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="return-value">Return value</h3>
 <p>An <code>events</code> object is a list with three data frames:</p>
 <table class="caption-top table">
 <colgroup>
@@ -534,14 +584,23 @@ Note
 </tr>
 </tbody>
 </table>
-<p>Two helpers convert these tables into per-event lists:</p>
+</section>
+</section>
+<section id="helpers" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="helpers">Helpers</h2>
+<p>There are a number of helpers included in the package to make working with the <code>events</code> objects easier:</p>
 <ul>
+<li><code>create_net_from_events(ev)</code> → Create an <code>events</code> object from an <code>network</code> object.</li>
+<li><code>create_events_from_net(net)</code> → Create an <code>network</code> object from an <code>events</code> object.</li>
 <li><code>nodes_by_event(ev)</code> → list of node-arrival data frames (one per <code>event_id</code>)</li>
 <li><code>edges_by_event(ev)</code> → list of edge-arrival data frames (one per <code>event_id</code>)</li>
 </ul>
+<p>See the actual docs (eg. <code>?hawkesNet::create_net_from_events</code>) for more information on these.</p>
 </section>
-<section id="example" class="level2" data-number="2.4">
-<h2 data-number="2.4" class="anchored" data-anchor-id="example"><span class="header-section-number">2.4</span> Example</h2>
+<section id="examples" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="examples">Examples</h2>
+<section id="standard" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="standard">Standard</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>nodes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">id   =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>),</span>
@@ -555,94 +614,9 @@ Note
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ev <span class="ot">&lt;-</span> <span class="fu">make_events</span>(<span class="at">nodes =</span> nodes, <span class="at">edges =</span> edges)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="columns" style="gap: 0.8rem; padding-bottom: 1.4rem;">
-<div class="column" style="width:33%;">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event times</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">event_id</th>
-<th style="text-align: right;">t</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">2</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Node arrivals</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">event_id</th>
-<th style="text-align: left;">id</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">3</td>
-<td style="text-align: left;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Edge arrivals</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">event_id</th>
-<th style="text-align: left;">i</th>
-<th style="text-align: left;">j</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">3</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<section id="implicit-births-from-edges" class="level3" data-number="2.4.1">
-<h3 data-number="2.4.1" class="anchored" data-anchor-id="implicit-births-from-edges"><span class="header-section-number">2.4.1</span> Implicit births from edges</h3>
+</section>
+<section id="implicit-births-from-edges" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="implicit-births-from-edges">Implicit births from edges</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>edges_example <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">i    =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"1"</span>),</span>
@@ -652,90 +626,36 @@ Note
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>events_from_edges <span class="ot">&lt;-</span> <span class="fu">make_events</span>(<span class="at">edges =</span> edges_example, <span class="at">allow_implicit_birth =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="columns" style="gap: 0.8rem; padding-bottom: 1.4rem;">
-<div class="column" style="width:33%;">
+</section>
+<section id="node-edge-attributes" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="node-edge-attributes">Node &amp; edge attributes</h3>
 <div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Event times</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">event_id</th>
-<th style="text-align: right;">t</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-</tbody>
-</table>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>nodes <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">id   =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">role =</span> <span class="fu">c</span>(<span class="st">"event"</span>, <span class="st">"perp"</span>, <span class="st">"perp"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>edges <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">i    =</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"1"</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">j    =</span> <span class="fu">c</span>(<span class="st">"2"</span>, <span class="st">"3"</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">attribute =</span> <span class="fu">c</span>(<span class="st">"strong"</span>, <span class="st">"weak"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>ev <span class="ot">&lt;-</span> <span class="fu">make_events</span>(<span class="at">nodes =</span> nodes, <span class="at">edges =</span> edges)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>ev<span class="sc">$</span>nodes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  event_id id  role
+1        1  1 event
+2        2  2  perp
+3        3  3  perp</code></pre>
 </div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Inferred node arrivals</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">event_id</th>
-<th style="text-align: left;">id</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">NA</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">NA.1</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">NA.2</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Edge arrivals</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">event_id</th>
-<th style="text-align: left;">i</th>
-<th style="text-align: left;">j</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">2</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ev<span class="sc">$</span>edges</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  event_id i j attribute
+1        2 1 2    strong
+2        3 1 3      weak</code></pre>
 </div>
 </div>
 

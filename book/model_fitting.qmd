@@ -2,10 +2,16 @@
 
 # Model Fitting
 
-Model fitting UX is approximately the same, however you pass events rather than
-`mark_filtration` network object.
+Model fitting requires an `events` object, created by `make_events()`.
 
-```{r include = FALSE}
+Fit models using `fit_hawkesNet()`.
+
+## Example {.unnumbered}
+
+First simulate some data (or use your own, and plug it into the `make_events()`
+function).
+
+```{r}
 set.seed(1)
 
 params_ba <- list(
@@ -15,18 +21,20 @@ params_ba <- list(
   beta_edges = 0.5
 )
 
-time <- 5
+time <- 50
 
 sim <- sim_hawkesNet(
   params = params_ba,
   T_end = time,
   mark_type = "ba"
 )
+
+events <- sim$ev
+class(events)
 ```
 
-```{r}
-str(sim$ev)
-```
+And then fitting the model. Make sure you specify a `mark_type`. Can be one of:
+`ba`, `cs`, `ba_bip`, `cs_bip`.
 
 ```{r}
 params_init <- list(
@@ -46,21 +54,19 @@ fit <- fit_hawkesNet(
 And we can see the fitted values:
 
 ```{r}
-fit$fit$par
+unlist(fit$par)
 ```
+
+Not terrible!
 
 Internally, the network is built incrementally event-by-event, for each iteration of the
 likelihood, rather than rebuilding the whole network up until that event, per-event.
 
-Still need to implement Duncan's improvement which should make the model fitting 
-lightning quick, as it means we only build the network object a SINGLE time, for 
-the entire fitting process!
+Still need to add a proper `summary()` function, as well as return std. errs. This
+should be really quick to implement, I'm just lazy.
 
-Fully list of arguments:
-
-```{r}
-# List arguments here, probably some package to make a neat table.
-```
+Also eventually this page (as well as `Simulation`) would contain all the argument
+information.
 
 
 

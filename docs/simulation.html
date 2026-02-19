@@ -106,6 +106,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-sidebar floating quarto-light">
@@ -195,7 +196,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Examples</span></a>
+ <span class="menu-text">Kernels &amp; Examples</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -313,8 +314,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#example" id="toc-example" class="nav-link active" data-scroll-target="#example">Example</a></li>
+  <li><a href="#return-value" id="toc-return-value" class="nav-link" data-scroll-target="#return-value">Return value</a>
+  <ul class="collapse">
+  <li><a href="#events" id="toc-events" class="nav-link" data-scroll-target="#events"><code>events</code></a></li>
+  <li><a href="#accept_probs" id="toc-accept_probs" class="nav-link" data-scroll-target="#accept_probs"><code>accept_probs</code></a></li>
+  <li><a href="#net" id="toc-net" class="nav-link" data-scroll-target="#net"><code>net</code></a></li>
+  <li><a href="#ev" id="toc-ev" class="nav-link" data-scroll-target="#ev"><code>ev</code></a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -338,20 +352,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS).</p>
-<p>The algorithm used is the same, except the upper bound for thinning is recalculated after each event, rather than at the very beginning, which makes it slightly more efficient, and means you don’t have to worry about setting a valid <code>mu_multiplier</code> value.</p>
-<p>Example:</p>
+<style>
+.vcenter-cols .columns {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.vcenter-cols .columns .column {
+  flex: 1 1 0;
+}
+</style>
+<p>Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS, BIP_CS).</p>
+<p>Uses the usual hawkes Ogata thinning algorithm.</p>
+<section id="example" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="example">Example</h2>
+<p>Simulate data using the <code>sim_hawkesNet()</code> function. See <code>?hawkesNet::sim_hawkesNet</code> for more information.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>params_ba <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">2</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu =</span> <span class="dv">5</span>,</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">K =</span> <span class="fl">0.5</span>,</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta =</span> <span class="fl">0.8</span>,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">beta_edges =</span> <span class="fl">0.5</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="dv">10</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>sim <span class="ot">&lt;-</span> <span class="fu">sim_hawkesNet</span>(</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">params =</span> params_ba,</span>
@@ -361,47 +387,68 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">mark_type =</span> <span class="st">"ba"</span></span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Simulation took 0.16 seconds"</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(sim)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "events"       "accept_probs" "ev"           "net"         </code></pre>
+<pre><code>[1] "Simulation took 0.33 seconds"</code></pre>
 </div>
 </div>
-<p>Looking at the output.</p>
-<p><code>events</code> contains the times and number of total events simulated:</p>
+</section>
+<section id="return-value" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="return-value">Return value</h2>
+<p>Simulation object contains <code>events</code>, <code>accept_probs</code>, <code>net</code> and <code>ev</code>.</p>
+<section id="events" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="events"><code>events</code></h3>
+<p>Contains the times and number of total events simulated:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>events</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sim<span class="sc">$</span>events)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>$n
-[1] 22
-
-$t
- [1] 0.3775909 0.4504443 0.6357547 1.2696058 1.4247319 1.5209317 1.8195977
- [8] 2.4765490 2.6199033 2.7111106 2.7712502 3.0028158 3.2289452 3.4861193
-[15] 3.9594114 4.1439052 4.3469041 4.3969257 4.5448436 4.5943761 4.7734668
-[22] 4.9298905</code></pre>
+<pre><code>List of 2
+ $ n: int 110
+ $ t: num [1:110] 0.151 0.178 0.254 0.534 0.784 ...</code></pre>
 </div>
 </div>
-<p><code>accept_probs</code> contains the acceptance probabilities of each event:</p>
+</section>
+<section id="accept_probs" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="accept_probs"><code>accept_probs</code></h3>
+<p>Contains the acceptance probabilities from the thinning for each event:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>accept_probs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sim<span class="sc">$</span>accept_probs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] 1.0000000 1.2358458 1.1481242 0.9886842 1.1238954 1.1197264 1.0193665
- [8] 0.9005026 1.0960620 1.1000923 1.0989982 1.0063711 1.0076248 0.9928947
-[15] 0.9097591 1.0421951 1.0268910 1.0935040 1.0333602 1.0784932 1.0029862
-[22] 1.0138147</code></pre>
+<pre><code> num [1:112] 1 0.998 0.99 0.955 0.987 ...</code></pre>
 </div>
 </div>
-<p><code>net</code> is the final network created from the events:</p>
+</section>
+<section id="net" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="net"><code>net</code></h3>
+<p>The final network created from the events:</p>
 <div class="cell" data-figure.caption="Realisation of a BA simulation">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim<span class="sc">$</span>net)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim<span class="sc">$</span>net)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="simulation_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
+</div>
+</div>
+<p>Notice that the <code>time</code> attributes are preserved in the network object:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>net</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Network attributes:
+  vertices = 110 
+  directed = FALSE 
+  hyper = FALSE 
+  loops = FALSE 
+  multiple = FALSE 
+  bipartite = FALSE 
+  total edges= 121 
+    missing edges= 0 
+    non-missing edges= 121 
+
+ Vertex attribute names: 
+    time vertex.names 
+
+ Edge attribute names: 
+    time </code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -414,29 +461,34 @@ Tip
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>All the vertex attributes are preserved. Additionally, edge attributes are supported, so if custom kernels are written which utilize these later i.e.&nbsp;weighted edges, toggleable edges etc., the current framework does not eed to change.</p>
+<p>All the vertex attributes are preserved. Additionally, edge attributes are supported, so if custom kernels are written which utilize these later i.e.&nbsp;weighted edges, toggle-able edges etc., the current framework does not eed to change.</p>
 </div>
 </div>
-<p><code>ev</code> which is the <code>hg_events</code> object which can be plugged directly into <code>fit_hawkesNet()</code>.</p>
+</section>
+<section id="ev" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="ev"><code>ev</code></h3>
+<p>The <code>events</code> object which can be plugged directly into <code>fit_hawkesNet()</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sim<span class="sc">$</span>ev)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>List of 3
- $ times:'data.frame':  22 obs. of  2 variables:
-  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...
-  ..$ t       : num [1:22] 0.378 0.45 0.636 1.27 1.425 ...
- $ nodes:'data.frame':  22 obs. of  2 variables:
-  ..$ event_id: int [1:22] 1 2 3 4 5 6 7 8 9 10 ...
-  ..$ id      : chr [1:22] "1" "2" "3" "4" ...
- $ edges:'data.frame':  21 obs. of  3 variables:
-  ..$ event_id: int [1:21] 2 3 3 6 6 7 8 9 10 10 ...
-  ..$ i       : chr [1:21] "1" "1" "2" "1" ...
-  ..$ j       : chr [1:21] "2" "3" "3" "6" ...
- - attr(*, "class")= chr [1:2] "hg_events" "list"</code></pre>
+ $ times:'data.frame':  110 obs. of  2 variables:
+  ..$ event_id: int [1:110] 1 2 3 4 5 6 7 8 9 10 ...
+  ..$ t       : num [1:110] 0.151 0.178 0.254 0.534 0.784 ...
+ $ nodes:'data.frame':  110 obs. of  2 variables:
+  ..$ event_id: int [1:110] 1 2 3 4 5 6 7 8 9 10 ...
+  ..$ id      : chr [1:110] "1" "2" "3" "4" ...
+ $ edges:'data.frame':  121 obs. of  3 variables:
+  ..$ event_id: int [1:121] 2 3 3 5 6 7 7 8 9 9 ...
+  ..$ i       : chr [1:121] "1" "1" "2" "2" ...
+  ..$ j       : chr [1:121] "2" "3" "3" "5" ...
+ - attr(*, "class")= chr [1:2] "events" "list"</code></pre>
 </div>
 </div>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

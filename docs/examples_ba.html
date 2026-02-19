@@ -105,7 +105,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-sidebar floating quarto-light">
@@ -117,7 +147,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples_ba.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_ba.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">BA Kernel</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples_ba.html">Kernels &amp; Examples</a></li><li class="breadcrumb-item"><a href="./examples_ba.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">BA Kernel</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -195,7 +225,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
- <span class="menu-text">Examples</span></a>
+ <span class="menu-text">Kernels &amp; Examples</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -319,6 +349,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#kernel-specification" id="toc-kernel-specification" class="nav-link active" data-scroll-target="#kernel-specification">Kernel Specification</a></li>
+  <li><a href="#data-expectations" id="toc-data-expectations" class="nav-link" data-scroll-target="#data-expectations">Data Expectations</a></li>
   <li><a href="#simulation" id="toc-simulation" class="nav-link" data-scroll-target="#simulation">Simulation</a></li>
   <li><a href="#model-fitting" id="toc-model-fitting" class="nav-link" data-scroll-target="#model-fitting">Model fitting</a></li>
   </ul>
@@ -327,7 +358,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples_ba.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_ba.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">BA Kernel</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples_ba.html">Kernels &amp; Examples</a></li><li class="breadcrumb-item"><a href="./examples_ba.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">BA Kernel</span></a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">BA Kernel</span></h1>
 </div>
@@ -358,8 +389,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 <section id="kernel-specification" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="kernel-specification">Kernel Specification</h3>
-<p>Each mark consists of exactly one new node, which has edges from that new node to older nodes according to a normalized degree-based weighting.</p>
-<p>Will update this later.</p>
+<p>The BA kernel is a <strong>new-node attachment</strong> model: at each event time, exactly <strong>one new node</strong> arrives, and it connects to a subset of the <strong>already-existing</strong> nodes.</p>
+<p>In the current <code>hawkesNet</code> implementation, the set of attachments is modelled as follows:</p>
+<ul>
+<li>Let <span class="math inline">\(V(t^-)\)</span> be the set of existing (“old”) nodes right before the event at time <span class="math inline">\(t\)</span>.</li>
+<li>For each old node <span class="math inline">\(u \in V(t^-)\)</span>, the new node attaches to <span class="math inline">\(u\)</span> <strong>independently</strong> with probability <span class="math display">\[
+p_u(t) \propto (d_u(t^-) + \delta)\,\exp(-\beta_{\text{edges}}\cdot \text{age}_u(t)),
+\]</span> where <span class="math inline">\(d_u(t^-)\)</span> is the current degree of <span class="math inline">\(u\)</span>, and <span class="math inline">\(\text{age}_u(t) = t - t_u\)</span> is how long ago node <span class="math inline">\(u\)</span> arrived (using its stored node “time” attribute).</li>
+<li>The probabilities are normalised over all old nodes so they sum to 1 before forming the Bernoulli probabilities used in the product model.</li>
+</ul>
+<p>Intuitively:</p>
+<ul>
+<li><strong>Higher-degree nodes</strong> are more likely to receive a new connection (preferential attachment).</li>
+<li>If <span class="math inline">\(\beta_{\text{edges}} &gt; 0\)</span>, <strong>older nodes are down-weighted</strong> via the exponential term (recency/aging effect).</li>
+<li><span class="math inline">\(\delta\)</span> is a small smoothing constant so degree-zero nodes remain eligible.</li>
+</ul>
+<p>Under this mark model, the probability of observing a particular set of attached old nodes is a <strong>product of Bernoulli terms</strong> over the old node set: <span class="math display">\[
+\Pr(\text{attachments at } t) = \prod_{u \in V(t^-)} p_u(t)^{I_u}\,(1-p_u(t))^{1-I_u},
+\]</span> where <span class="math inline">\(I_u = 1\)</span> if the new node attached to <span class="math inline">\(u\)</span>, and <span class="math inline">\(I_u=0\)</span> otherwise.</p>
+<hr>
+</section>
+<section id="data-expectations" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="data-expectations">Data Expectations</h3>
+<p>To use the BA kernel, your observed events must match the “new node arrives + connects to existing nodes” pattern:</p>
+<ul>
+<li><strong>Exactly one new node per event</strong> (one row in the node-arrivals data for each event time).</li>
+<li>Any edges at that event must connect <strong>that new node</strong> to <strong>existing nodes</strong>.</li>
+<li>Within an event, you should not have the same old node attached multiple times (i.e., no duplicate new–old pair within the same event).</li>
+</ul>
+<p>Edge cases:</p>
+<ul>
+<li>If there are <strong>no existing nodes yet</strong>, the event must have <strong>no edges</strong> (there is nobody to attach to).</li>
+<li>If your data contains edges between two already-existing nodes, or repeated transactions/multi-edges between the same pair, then this BA mark model is not the right fit without extending the mark space / PMF.</li>
+</ul>
+<hr>
 </section>
 <section id="simulation" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="simulation">Simulation</h3>
@@ -384,7 +447,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">mark_type =</span> <span class="st">"ba"</span></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Simulation took 0.89 seconds"</code></pre>
+<pre><code>[1] "Simulation took 2.13 seconds"</code></pre>
 </div>
 </div>
 </div><div class="column" style="width:60%;">
@@ -418,7 +481,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">mark_type =</span> <span class="st">"ba"</span></span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Fitting took 47.14 seconds"</code></pre>
+<pre><code>[1] "Fitting took 5.55 seconds"</code></pre>
 </div>
 </div>
 <p>Parameter values on the fitted scale:</p>
@@ -426,7 +489,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unlist</span>(fit<span class="sc">$</span>par)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        mu          K       beta beta_edges 
- 0.8502838  0.4381081  0.4946193  2.0018328 </code></pre>
+ 1.4169583  0.4623329  0.5102294  2.0408620 </code></pre>
 </div>
 </div>
 <p>Not too bad.</p>
@@ -436,7 +499,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fit<span class="sc">$</span>fit<span class="sc">$</span>par</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        mu          K       beta beta_edges 
--0.1621852 -0.8252896 -0.7039668  0.6940632 </code></pre>
+ 0.3485126 -0.7714700 -0.6728948  0.7133722 </code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">

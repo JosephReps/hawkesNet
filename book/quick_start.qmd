@@ -87,64 +87,49 @@ If you haven't already, install the package:
 devtools::install_github("JosephReps/hawkesNet")
 ```
 
-### Input Data {.unnumbered}
+### ReprEx {.unnumbered}
 
-Data should be consist of:
+```{r eval = FALSE}
+# Our input data
 
-1. An `edges` data frame, requiring columns `i`, `j` and `time`.
-2. Optionally a `nodes` data frame, requiring columns `id` and `time`.
-
-```{r}
+# Edge arrivals w/ times
 edges <- data.frame(
   i = c(1,1,3,1,4,1,4,2,9),
   j = c(2,3,4,5,6,7,8,9,10),
   time = 1:9
 )
 
+# Node arrivals w/ times
 nodes <- data.frame(id = 1:10, time = 0:9)
-```
 
-### Construct events {.unnumbered}
-
-Construct the events object using the `make_events()` function:
-
-```{r}
+# Making the events object from our data
 ev <- make_events(nodes = nodes, edges = edges)
-```
 
-::: {.callout-note collapse="true"}
-## More information on events & data structure here.
-:::
-
-### Fit model {.unnumbered}
-
-Fit the data using an appropriate kernel:
-
-```{r results = FALSE}
+# Fit the data using an appropriate kernel, in this case BA
 fit <- fit_hawkesNet(
   ev = ev,
   params_init = list(mu = 1, K = 1, beta = 1, beta_edges = 1),
   mark_type = "ba"
 )
-```
 
-:::callout-warning
-Need to implement!
-:::
-
-```{r eval = FALSE}
 summary(fit)
 ```
 
-::: {.callout-note collapse="true"}
-## More information on model fitting here.
+:::callout-note
+In the example above, we have taken special care to ensure the `edges` and `nodes` 
+data frames satisfy the BA kernel assumptions. To learn more about this, head to 
+the BA kernel page in the Examples section.
 :::
+
+```{r include = FALSE, eval = FALSE}
+unlist(fit$par)
+```
 
 ### Diagnostics {.unnumbered}
 
 View model fit diagnostics.
 
-```{r fig.height=3}
+```{r fig.height=3, eval = FALSE}
 par(mfrow=c(1,2))
 plot(fit, type = "tau_qq")
 plot(fit, type = "degree_hist")

@@ -4,10 +4,46 @@
 
 ### Kernel Specification {.unnumbered}
 
-Each mark consists of exactly one new node, which has edges from that new node 
-to older nodes according to a normalized degree-based weighting.
+The BA kernel is a **new-node attachment** model: at each event time, exactly **one new node** arrives, and it connects to a subset of the **already-existing** nodes.
 
-Will update this later.
+In the current `hawkesNet` implementation, the set of attachments is modelled as follows:
+
+- Let $V(t^-)$ be the set of existing (“old”) nodes right before the event at time $t$.
+- For each old node $u \in V(t^-)$, the new node attaches to $u$ **independently** with probability
+$$
+  p_u(t) \propto (d_u(t^-) + \delta)\,\exp(-\beta_{\text{edges}}\cdot \text{age}_u(t)),
+$$
+  where $d_u(t^-)$ is the current degree of $u$, and $\text{age}_u(t) = t - t_u$ is how long ago node $u$ arrived (using its stored node “time” attribute).
+- The probabilities are normalised over all old nodes so they sum to 1 before forming the Bernoulli probabilities used in the product model.
+
+Intuitively:
+
+- **Higher-degree nodes** are more likely to receive a new connection (preferential attachment).
+- If $\beta_{\text{edges}} > 0$, **older nodes are down-weighted** via the exponential term (recency/aging effect).
+- $\delta$ is a small smoothing constant so degree-zero nodes remain eligible.
+
+Under this mark model, the probability of observing a particular set of attached old nodes is a **product of Bernoulli terms** over the old node set:
+$$
+\Pr(\text{attachments at } t) = \prod_{u \in V(t^-)} p_u(t)^{I_u}\,(1-p_u(t))^{1-I_u},
+$$
+where $I_u = 1$ if the new node attached to $u$, and $I_u=0$ otherwise.
+
+---
+
+### Data Expectations {.unnumbered}
+
+To use the BA kernel, your observed events must match the “new node arrives + connects to existing nodes” pattern:
+
+- **Exactly one new node per event** (one row in the node-arrivals data for each event time).
+- Any edges at that event must connect **that new node** to **existing nodes**.
+- Within an event, you should not have the same old node attached multiple times (i.e., no duplicate new–old pair within the same event).
+
+Edge cases:
+
+- If there are **no existing nodes yet**, the event must have **no edges** (there is nobody to attach to).
+- If your data contains edges between two already-existing nodes, or repeated transactions/multi-edges between the same pair, then this BA mark model is not the right fit without extending the mark space / PMF.
+
+---
 
 ### Simulation {.unnumbered}
 

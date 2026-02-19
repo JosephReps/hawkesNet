@@ -4,17 +4,70 @@
 
 ### Kernel Specification {.unnumbered}
 
-Nodes have two possible classifications / types / modes - events / perps.
+The CS-Bipartite kernel extends the CS (“change-statistic”) kernel to **bipartite networks**, where nodes belong to two disjoint sets (say **Part A** and **Part B**) and edges may only occur across parts (A–B).
 
-Each mark consists of exactly 1 new event node arriving, which connects to old 
-perp nodes according to the same degree-based weighting above. Additionally, 
-each mark consists of n ~ Pois(lambda_new) perp nodes, which are attached to the 
-new event node.
+As in the CS kernel, attachment decisions are driven by **ERGM-style change statistics**, rather than by degree weighting.
 
-:::callout-note
-Literally exactly the same as using the CS kernel, but all you need to do is
-specify `mark_type = "cs_bip"`.
-:::
+At each event time $t$:
+
+- A random number of **new nodes** arrives:
+  $$
+  M_t \sim \text{Poisson}(\lambda_{\text{node}}),
+  $$
+  where $\lambda_{\text{node}}$ is controlled by `node_lambda`.  
+  Each arriving node is assigned to one of the two bipartite parts (according to the internal sampling mechanism in the simulator).
+
+- Let $V_A(t^-)$ and $V_B(t^-)$ be the existing nodes in Parts A and B immediately before time $t$.
+  Let $N_A(t)$ and $N_B(t)$ be the sets of new nodes arriving into Parts A and B at time $t$.
+
+The candidate edge set consists of all possible cross-part new–old edges:
+$$
+\{(u, v): u \in N_A(t),\, v \in V_B(t^-)\}
+\;\cup\;
+\{(u, v): u \in N_B(t),\, v \in V_A(t^-)\}.
+$$
+
+Optionally, the candidate set may be truncated (via the `truncation` argument) to reduce computational cost by limiting how many old nodes each new node is allowed to consider.
+
+For each candidate edge $(u,v)$, a vector of bipartite change statistics
+$$
+C_{uv}(t)
+$$
+is computed from the current bipartite network using the user-specified ERGM-style formula (via `computeChangeStats()`).
+
+These are converted into baseline edge probabilities using a logistic link:
+$$
+p^{(0)}_{uv}(t) = \text{logit}^{-1}\!\left(C_{uv}(t)^\top \theta\right).
+$$
+
+As in the other kernels, an aging / recency adjustment is then applied to down-weight older target nodes:
+$$
+p_{uv}(t) = p^{(0)}_{uv}(t)\,\exp\!\big(-\beta_{\text{edges}}\cdot \text{age}_v(t)\big),
+$$
+where $\text{age}_v(t) = t - t_v$ is computed from the stored node arrival time.
+
+Each candidate edge is then treated as an independent Bernoulli trial, so the mark probability is a **product of Bernoulli terms** over the bipartite candidate edge set.
+
+---
+
+### Data Expectations {.unnumbered}
+
+To use the CS-Bipartite kernel, your observed events must represent a **bipartite growth process**, meaning:
+
+- Every node belongs to exactly one of two parts (A or B).
+- Each event time may introduce **zero or more new nodes**.
+- Any edges observed at an event must connect a **new node** to an **already-existing node in the opposite part**.
+
+In particular, the current CS-Bipartite implementation assumes:
+
+- **No within-part edges** (no A–A or B–B edges).
+- **No old–old edges** (edges cannot form between two already-existing nodes).
+- **No new–new edges** (edges cannot form between two nodes arriving at the same event time).
+- **No self-loops**, and no duplicate edges within a single event.
+
+If your data contains cross-part edges forming between two already-existing nodes (e.g. repeated interactions between the same two agents over time), then the CS-Bipartite kernel is not an appropriate mark model without extending the mark space / PMF.
+
+---
 
 ### Simulation {.unnumbered}
 

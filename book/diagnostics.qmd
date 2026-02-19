@@ -3,32 +3,33 @@
 ```{r include = FALSE}
 set.seed(1)
 
-time <- 50
-params_ba_true <- list(
-  mu = 0.5,
+params_ba <- list(
+  mu = 2,
   K = 0.5,
-  beta = 0.5,
-  beta_edges = 2
+  beta = 0.8,
+  beta_edges = 0.5
 )
 
+time <- 50
+
 sim <- sim_hawkesNet(
-  params = params_ba_true,
+  params = params_ba,
   T_end = time,
   mark_type = "ba"
 )
 
-params_ba_init <- list(
-  mu = 1,
-  K = 1,
+params_init <- list(
+  mu = 5,
+  K = 0.3,
   beta = 1,
   beta_edges = 1
 )
 
 fit <- fit_hawkesNet(
-      ev = sim$ev,
-      params_init = params_ba_init,
-      mark_type = "ba"
-    )
+    ev = sim$ev,
+    params_init = params_init,
+    mark_type = "ba"
+)
 ```
 
 # Diagnostics
@@ -37,8 +38,7 @@ fit <- fit_hawkesNet(
 
 A number of diagnostic plots are available for `events` and `fit` objects.
 
-For the examples here, we will be using the following network data (generated 
-under the BA specification).
+For the examples here, we will be using the fitted model from the previous section:
 
 ```{r}
 plot(sim$net)
@@ -67,13 +67,17 @@ invisible(lapply(types_net, function(tp) plot(sim$ev, type = tp)))
 
 You can see all the network diagnostic plots available here:
 
-```{r fig.height = 11}
-# Temporal diagnostic plots (2 columns)
+```{r fig.height = 9, fig.width=12}
 types_time <- c("count", "dt", "lambda", "tau_hist", "tau_qq")
 
 oldpar <- par(no.readonly = TRUE)
 on.exit(par(oldpar), add = TRUE)
 
-par(mfrow = c(ceiling(length(types_time) / 2), 2), mar = c(4, 4, 2, 1))
-invisible(lapply(types_time, function(tp) plot(fit, type = tp)))
+par(mfrow = c(2, 3), mar = c(4, 4, 2, 1))
+
+for (tp in types_time) {
+  plot(fit, type = tp)
+}
+
+plot.new()
 ```

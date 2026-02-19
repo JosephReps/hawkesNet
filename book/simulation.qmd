@@ -2,26 +2,26 @@
 
 # Simulation
 
-Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS).
+Simulation is relatively straightforward for the core kernels (BA, BA_BIP, CS, BIP_CS).
 
-The algorithm used is the same, except the upper bound for thinning is 
-recalculated after each event, rather than at the very beginning, which makes it
-slightly more efficient, and means you don't have to worry about setting a valid
-`mu_multiplier` value.
+Uses the usual hawkes Ogata thinning algorithm.
 
-Example:
+## Example {.unnumbered}
+
+Simulate data using the `sim_hawkesNet()` function. See `?hawkesNet::sim_hawkesNet` 
+for more information.
 
 ```{r}
 set.seed(1)
 
 params_ba <- list(
-  mu = 2,
+  mu = 5,
   K = 0.5,
   beta = 0.8,
   beta_edges = 0.5
 )
 
-time <- 5
+time <- 10
 
 sim <- sim_hawkesNet(
   params = params_ba,
@@ -30,28 +30,41 @@ sim <- sim_hawkesNet(
   debug = FALSE,
   mark_type = "ba"
 )
-
-names(sim)
 ```
 
-Looking at the output.
+## Return value {.unnumbered}
 
-`events` contains the times and number of total events simulated:
+Simulation object contains `events`, `accept_probs`, `net` and `ev`.
+
+### `events` {.unnumbered} 
+
+Contains the times and number of total events simulated:
 
 ```{r}
-sim$events
+str(sim$events)
 ```
 
-`accept_probs` contains the acceptance probabilities of each event:
+### `accept_probs` {.unnumbered}
+
+Contains the acceptance probabilities from the thinning for each 
+event:
 
 ```{r}
-sim$accept_probs
+str(sim$accept_probs)
 ```
 
-`net` is the final network created from the events:
+### `net` {.unnumbered}
+
+The final network created from the events:
 
 ```{r figure.caption = "Realisation of a BA simulation"}
 plot(sim$net)
+```
+
+Notice that the `time` attributes are preserved in the network object:
+
+```{r}
+sim$net
 ```
 
 :::callout-tip
@@ -61,7 +74,9 @@ these later i.e. weighted edges, toggle-able edges etc., the current framework
 does not eed to change.
 :::
 
-`ev` which is the `hg_events` object which can be plugged directly into `fit_hawkesNet()`.
+### `ev` {.unnumbered}
+
+The `events` object which can be plugged directly into `fit_hawkesNet()`.
 
 ```{r}
 str(sim$ev)

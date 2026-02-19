@@ -2,9 +2,68 @@
 
 # CS Kernel
 
+:::callout-warning
+My CS specification does NOT allow for marks to contain edges between two old nodes.
+:::
+
 ### Kernel Specification {.unnumbered}
 
-Will update this later.
+The CS (“change-statistic”) kernel is also a **new-node attachment** model, but instead of choosing attachment targets using degree weights (as in BA), it uses **ERGM-style change statistics** to score each possible new–old edge.
+
+At each event time $t$:
+
+- A random number of **new nodes** arrives:
+  $$
+  M_t \sim \text{Poisson}(\lambda_{\text{node}}),
+  $$
+  (in the code this is `node_lambda`). Optionally, arrivals can be forced to stop after a cutoff time `max_node_time` (in which case $M_t$ must be 0 for $t$ past the cutoff).
+
+- Let $V(t^-)$ be the set of existing (“old”) nodes right before time $t$, and let $N(t)$ be the set of $M_t$ new nodes arriving at time $t$.
+
+- The model defines a **candidate set** of possible edges. In the current implementation, candidate edges are constructed deterministically as
+  $$
+  \{(u, v): u \in N(t),\; v \in V(t^-)\},
+  $$
+  with an optional **truncation** that limits each new node to only consider the first `truncation` old nodes (according to the current ordering used internally) (Currently not implemented, argument doesn't do anything but it's not needed).
+
+For each candidate edge $(u, v)$ (new node $u$ to old node $v$), a vector of change statistics
+$$
+C_{uv}(t)
+$$
+is computed from the current network using the ERNM/ERGM-style specification you provide (via `formula_rhs` / `computeChangeStats()`).
+
+These statistics are mapped to a baseline attachment probability using a logistic link:
+$$
+p^{(0)}_{uv}(t) = \text{logit}^{-1}\!\left(C_{uv}(t)^\top \theta\right).
+$$
+
+Finally, an **aging / recency** adjustment is applied to down-weight older target nodes:
+$$
+p_{uv}(t) = p^{(0)}_{uv}(t)\,\exp\!\big(-\beta_{\text{edges}}\cdot \text{age}_v(t)\big),
+$$
+where $\text{age}_v(t) = t - t_v$ and $t_v$ is the stored node arrival time. (In the implementation, probabilities are also clipped away from 0/1 for numerical stability.)
+
+Under this mark model, each candidate edge is treated as an independent Bernoulli trial, so the probability of observing a particular set of edges at time $t$ is a **Bernoulli-product** over the candidate set.
+
+---
+
+### Data Expectations {.unnumbered}
+
+To use the CS kernel, your events must match the “new nodes arrive + may connect to existing nodes” pattern:
+
+- Each event time can introduce **zero or more new nodes**.
+- Any edges observed at that event must be **between a new node and an old node**.
+
+Importantly (based on the current PMF / validators):
+
+- **Old–old edges are not allowed** (edges between two already-existing nodes).
+- **New–new edges are not allowed**.
+- **Self-loops are not allowed**.
+- Within a single event, you should not repeat the same edge (no duplicates for a given unordered pair).
+
+If your data includes edges forming between two existing nodes (e.g., repeated interactions/transactions, new ties between old users, etc.), then the current CS mark model is not appropriate without extending the mark space / PMF.
+
+---
 
 ### Simulation {.unnumbered}
 
@@ -17,7 +76,7 @@ Simulate CS data.
 ```{r}
 set.seed(1)
 
-time <- 5
+time <- 15
 params_cs_true <- list(
   mu = 5,
   K = 0.5,
@@ -92,6 +151,8 @@ Parameter values on the fitted scale:
 ```{r}
 unlist(fit$par)
 ```
+
+Notttt baddddd.
 
 Parameter values on the transformed scale:
 

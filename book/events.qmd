@@ -7,27 +7,42 @@ object up-front, you provide **node arrivals** and **edge arrivals** as data
 frames, then call `make_events()` to convert them into the internal `events`
 representation used by simulation and fitting.
 
-## Input data frames
+## Input data frames {.unnumbered}
 
-### `nodes`
+As stated, the two inputs are an `edges` and a `nodes` data frame. 
+
+::: {.callout-note}
+The `nodes` data frame is not required. Node arrival times can be inferred
+from the edge alone (make sure `allow_implicit_births = TRUE` when using 
+`make_events()`). However, if you only pass `edges`, you **cannot** represent 
+edgeless node arrivals, as the node only exists when it first appears in an edge.
+:::
+
+### `edges` {.unnumbered}
+
+| Column | Type | Meaning | Notes |
+|---|---|---|---|
+| `i` | character / integer | Tail/endpoint node id | Together with `j` identifies an edge between two nodes. |
+| `j` | character / integer | Head/endpoint node id | Current `hawkesNet` kernels treat edges as **undirected** (order doesn’t matter). |
+| `time` | numeric | Edge arrival time | Must be $\ge$ both endpoint birth times in `nodes` (if provided). |
+| `...` | any | Extra edge attributes | Carried through as edge attributes in the underlying network during fitting. |
+
+
+### `nodes` {.unnumbered}
 
 | Column | Type | Meaning | Notes |
 |---|---|---|---|
 | `id` | character / integer | Node identifier | Must be unique within `nodes`. IDs used in `edges$i`/`edges$j` must match these. |
 | `time` | numeric | Node birth/arrival time | Can be continuous or discrete. Must be comparable to `edges$time`. |
-| `role` (optional) | character | Node role/type (e.g. `"event"`, `"perp"`) | Required for bipartite kernels (e.g. `*_bip`) if your mark model distinguishes node types. |
-| *(anything else)* | any | Extra node attributes | Carried through as vertex attributes in the underlying network during fitting. |
+| `role` (optional) | character | Node role/type <br> (e.g. `"event"`, `"perp"`) | Required for bipartite kernels (e.g. `*_bip`) if your mark model distinguishes node types. |
+| `...` | any | Extra node attributes | Carried through as vertex attributes in the underlying network during fitting. |
 
-### `edges`
 
-| Column | Type | Meaning | Notes |
-|---|---|---|---|
-| `i` | character / integer | Tail/endpoint node id | Together with `j` identifies an edge between two nodes. |
-| `j` | character / integer | Head/endpoint node id | Current hawkesNet kernels treat edges as **undirected** (order doesn’t matter). |
-| `time` | numeric | Edge arrival time | Must be \(\ge\) both endpoint birth times (if provided). |
-| *(anything else)* | any | Extra edge attributes | Carried through as edge attributes in the underlying network during fitting. |
+## Creating events objects {.unnumbered}
 
-## `make_events()` API
+### `make_events()` {.unnumbered}
+
+You can create events objects used for fitting by using the `make_events()` function.
 
 | Argument | What it is | What it does |
 |---|---|---|
@@ -36,12 +51,7 @@ representation used by simulation and fitting.
 | `allow_implicit_birth` | logical | If `TRUE` and `nodes` is not supplied, infer node birth time as the first time the id appears in `edges`. |
 | `...` | optional | Package may expose additional validation/behaviour flags (kept here to avoid duplicating implementation details in the docs). |
 
-::: {.callout-note}
-If you *only* pass `edges` (implicit births), you **cannot represent edgeless node
-arrivals**—because the node only “exists” when it first appears in an edge.
-:::
-
-## What `make_events()` returns
+### Return value {.unnumbered}
 
 An `events` object is a list with three data frames:
 
@@ -51,12 +61,22 @@ An `events` object is a list with three data frames:
 | `ev$nodes` | `event_id`, `id`, … | Node arrivals mapped onto `event_id`. |
 | `ev$edges` | `event_id`, `i`, `j`, … | Edge arrivals mapped onto `event_id`. |
 
-Two helpers convert these tables into per-event lists:
+## Helpers {.unnumbered}
 
+There are a number of helpers included in the package to make working with the 
+`events` objects easier:
+
+- `create_net_from_events(ev)` → Create an `events` object from an `network` object.
+- `create_events_from_net(net)` → Create an `network` object from an `events` object.
 - `nodes_by_event(ev)` → list of node-arrival data frames (one per `event_id`)
 - `edges_by_event(ev)` → list of edge-arrival data frames (one per `event_id`)
 
-## Example
+See the actual docs (eg. `?hawkesNet::create_net_from_events`) for more 
+information on these.
+
+## Examples {.unnumbered}
+
+### Standard {.unnumbered}
 
 ```{r results=FALSE}
 nodes <- data.frame(
@@ -72,25 +92,7 @@ edges <- data.frame(
 ev <- make_events(nodes = nodes, edges = edges)
 ```
 
-::: {.columns style="gap: 0.8rem; padding-bottom: 1.4rem;"}
-::: {.column width="33%"}
-```{r echo=FALSE}
-kable(ev$times, caption = "Event times")
-```
-:::
-::: {.column width="33%"}
-```{r echo=FALSE}
-kable(ev$nodes, caption = "Node arrivals")
-```
-:::
-::: {.column width="33%"}
-```{r echo=FALSE}
-kable(ev$edges, caption = "Edge arrivals")
-```
-:::
-:::
-
-### Implicit births from edges
+### Implicit births from edges {.unnumbered}
 
 ```{r results=FALSE}
 edges_example <- data.frame(
@@ -102,20 +104,24 @@ edges_example <- data.frame(
 events_from_edges <- make_events(edges = edges_example, allow_implicit_birth = TRUE)
 ```
 
-::: {.columns style="gap: 0.8rem; padding-bottom: 1.4rem;"}
-::: {.column width="33%"}
-```{r echo=FALSE}
-kable(events_from_edges$times, caption = "Event times")
+### Node & edge attributes {.unnumbered}
+
+```{r}
+nodes <- data.frame(
+  id   = c("1", "2", "3"),
+  time = c(0, 1, 2),
+  role = c("event", "perp", "perp")
+)
+edges <- data.frame(
+  i    = c("1", "1"),
+  j    = c("2", "3"),
+  time = c(1, 2),
+  attribute = c("strong", "weak")
+)
+
+ev <- make_events(nodes = nodes, edges = edges)
+
+ev$nodes
+ev$edges
 ```
-:::
-::: {.column width="33%"}
-```{r echo=FALSE}
-kable(events_from_edges$nodes, caption = "Inferred node arrivals")
-```
-:::
-::: {.column width="33%"}
-```{r echo=FALSE}
-kable(events_from_edges$edges, caption = "Edge arrivals")
-```
-:::
-:::
+

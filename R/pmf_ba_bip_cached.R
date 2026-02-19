@@ -1,5 +1,55 @@
 # R/pmf_bip_ba_cached.R
-#
+
+# Internal: undirected edge key helper (order-invariant)
+.edge_key <- function(a, b) {
+  a <- as.character(a); b <- as.character(b)
+  lo <- ifelse(a <= b, a, b)
+  hi <- ifelse(a <= b, b, a)
+  paste0(lo, "|", hi)
+}
+
+.edge_keys_from_df <- function(edges_df) {
+  if (is.null(edges_df) || nrow(edges_df) == 0L) return(character(0))
+  stopifnot(is.data.frame(edges_df), all(c("i", "j") %in% names(edges_df)))
+  .edge_key(edges_df$i, edges_df$j)
+}
+
+# Internal: compute BA-bip attachment probabilities over OLD perp nodes only.
+# Returns a named numeric vector p_old_perp with names = perp node IDs.
+edge_probs_ba_bip <- function(net, t_k, beta_edges = 0.5, delta = 0.001) {
+  if (net %n% "n" == 0) return(numeric(0))
+
+  roles <- network::get.vertex.attribute(net, "role")
+  ids <- network::network.vertex.names(net)
+  if (is.null(ids)) ids <- as.character(seq_len(net %n% "n"))
+
+  old_perp_idx <- which(!is.na(roles) & roles == "perp")
+  if (length(old_perp_idx) == 0L) return(numeric(0))
+
+  born <- network::get.vertex.attribute(net, "time")
+  if (is.null(born)) {
+    stop("BA-bip requires vertex attribute `time` (birth time).", call. = FALSE)
+  }
+
+  # Age and degree for OLD perps
+  age <- t_k - born[old_perp_idx]
+  deg <- sna::degree(net)[old_perp_idx]
+
+  w <- (deg + delta) * exp(-beta_edges * age)
+  W <- sum(w)
+
+  if (!is.finite(W) || W <= 0) {
+    stop("Invalid BA-bip weights over old perps: sum(weights) must be > 0.", call. = FALSE)
+  }
+
+  p <- w / W
+  names(p) <- ids[old_perp_idx]
+
+  # Numerical safety
+  p <- pmin(pmax(p, 0), 1)
+  p
+}
+
 # Compile BA-bip mark log-likelihood into a cheap function(params) evaluator.
 #
 # Matches log_pmf_ba_bip() semantics:
