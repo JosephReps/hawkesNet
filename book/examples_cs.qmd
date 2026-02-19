@@ -114,7 +114,6 @@ plot(sim$net)
 
 ### Model fitting {.unnumbered}
 
-
 Fit CS data. 
 
 :::callout-tip
