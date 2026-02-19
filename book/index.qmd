@@ -79,7 +79,7 @@
 </div>
 
 <div class="net-hero-caption">
-  Interactive network visualisation. (Soon: real-time BA / CS simulation toggle.)
+  Click network in the top left to reset.
 </div>
 
 # Preface {.unnumbered}

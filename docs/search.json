@@ -155,7 +155,7 @@
     "href": "examples_cs.html",
     "title": "7  CS Kernel",
     "section": "",
-    "text": "Warning\n\n\n\nMy CS specification does NOT allow for marks to contain edges between two old nodes.\n\n\n\nKernel Specification\nThe CS (“change-statistic”) kernel is also a new-node attachment model, but instead of choosing attachment targets using degree weights (as in BA), it uses ERGM-style change statistics to score each possible new–old edge.\nAt each event time \\(t\\):\n\nA random number of new nodes arrives: \\[\nM_t \\sim \\text{Poisson}(\\lambda_{\\text{node}}),\n\\] (in the code this is node_lambda). Optionally, arrivals can be forced to stop after a cutoff time max_node_time (in which case \\(M_t\\) must be 0 for \\(t\\) past the cutoff).\nLet \\(V(t^-)\\) be the set of existing (“old”) nodes right before time \\(t\\), and let \\(N(t)\\) be the set of \\(M_t\\) new nodes arriving at time \\(t\\).\nThe model defines a candidate set of possible edges. In the current implementation, candidate edges are constructed deterministically as \\[\n\\{(u, v): u \\in N(t),\\; v \\in V(t^-)\\},\n\\] with an optional truncation that limits each new node to only consider the first truncation old nodes (according to the current ordering used internally) (Currently not implemented, argument doesn’t do anything but it’s not needed).\n\nFor each candidate edge \\((u, v)\\) (new node \\(u\\) to old node \\(v\\)), a vector of change statistics \\[\nC_{uv}(t)\n\\] is computed from the current network using the ERNM/ERGM-style specification you provide (via formula_rhs / computeChangeStats()).\nThese statistics are mapped to a baseline attachment probability using a logistic link: \\[\np^{(0)}_{uv}(t) = \\text{logit}^{-1}\\!\\left(C_{uv}(t)^\\top \\theta\\right).\n\\]\nFinally, an aging / recency adjustment is applied to down-weight older target nodes: \\[\np_{uv}(t) = p^{(0)}_{uv}(t)\\,\\exp\\!\\big(-\\beta_{\\text{edges}}\\cdot \\text{age}_v(t)\\big),\n\\] where \\(\\text{age}_v(t) = t - t_v\\) and \\(t_v\\) is the stored node arrival time. (In the implementation, probabilities are also clipped away from 0/1 for numerical stability.)\nUnder this mark model, each candidate edge is treated as an independent Bernoulli trial, so the probability of observing a particular set of edges at time \\(t\\) is a Bernoulli-product over the candidate set.\n\n\n\nData Expectations\nTo use the CS kernel, your events must match the “new nodes arrive + may connect to existing nodes” pattern:\n\nEach event time can introduce zero or more new nodes.\nAny edges observed at that event must be between a new node and an old node.\n\nImportantly (based on the current PMF / validators):\n\nOld–old edges are not allowed (edges between two already-existing nodes).\nNew–new edges are not allowed.\nSelf-loops are not allowed.\nWithin a single event, you should not repeat the same edge (no duplicates for a given unordered pair).\n\nIf your data includes edges forming between two existing nodes (e.g., repeated interactions/transactions, new ties between old users, etc.), then the current CS mark model is not appropriate without extending the mark space / PMF.\n\n\n\nSimulation\nSimulate CS data.\n\n\n\n\nset.seed(1)\n\ntime &lt;- 15\nparams_cs_true &lt;- list(\n  mu = 5,\n  K = 0.5,\n  beta = 2,\n  beta_edges = 0.5,\n  node_lambda = 4,\n  # CS_edges = -2.5,\n  # CS_triangles = 0.001,\n  CS_star.2 = -1,\n  CS_star.3 = -3\n)\n\nsim &lt;- sim_hawkesNet(\n  params = params_cs_true,\n  T_end = time,\n  mark_type = \"cs\",\n  # formula_rhs = \"edges + triangles() \n  # + star(c(2,3))\",\n  formula_rhs = \"star(c(2,3))\"\n)\n\n[1] \"Simulation took 0.98 seconds\"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nModel fitting\nFit CS data.\n\n\n\n\n\n\nTip\n\n\n\nMake sure to specify the transformation setting for the CS parameters.\nIdeally will default to correct value, but want to discuss how we are implementing the arguments, because lowk I like the old way of passing CS_params better.\n\n\n\nparams_cs_init &lt;- list(\n  mu = 3,\n  K = 1,\n  beta = 1,\n  beta_edges = 1,\n  node_lambda = 5,\n  # CS_edges = -2.5,\n  # CS_triangles = 0.001,\n  CS_star.2 = 0,\n  CS_star.3 = 0\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = sim$ev,\n      params_init = params_cs_init,\n      mark_type = \"cs\",\n      transform = list(CS_star.2 = \"none\", CS_star.3 = \"none\"),\n      formula_rhs = \"star(c(2,3))\"\n    )\n\n[1] \"Fitting took 9.72 seconds\"\n\n\nParameter values on the fitted scale:\n\nunlist(fit$par)\n\n         mu           K        beta  beta_edges node_lambda   CS_star.2 \n  4.6384795   0.7236149   3.3119207   0.4046910   4.1888536  -0.9812649 \n  CS_star.3 \n -3.1691266 \n\n\nNotttt baddddd.\nParameter values on the transformed scale:\n\nfit$fit$par\n\n         mu           K        beta  beta_edges node_lambda   CS_star.2 \n  1.5343866  -0.3234959   1.1975283  -0.9046315   1.4324271  -0.9812649 \n  CS_star.3 \n -3.1691266",
+    "text": "Warning\n\n\n\nMy CS specification does NOT allow for marks to contain edges between two old nodes.\n\n\n\nKernel Specification\nThe CS (“change-statistic”) kernel is also a new-node attachment model, but instead of choosing attachment targets using degree weights (as in BA), it uses ERGM-style change statistics to score each possible new–old edge.\nAt each event time \\(t\\):\n\nA random number of new nodes arrives: \\[\nM_t \\sim \\text{Poisson}(\\lambda_{\\text{node}}),\n\\] (in the code this is node_lambda). Optionally, arrivals can be forced to stop after a cutoff time max_node_time (in which case \\(M_t\\) must be 0 for \\(t\\) past the cutoff).\nLet \\(V(t^-)\\) be the set of existing (“old”) nodes right before time \\(t\\), and let \\(N(t)\\) be the set of \\(M_t\\) new nodes arriving at time \\(t\\).\nThe model defines a candidate set of possible edges. In the current implementation, candidate edges are constructed deterministically as \\[\n\\{(u, v): u \\in N(t),\\; v \\in V(t^-)\\},\n\\] with an optional truncation that limits each new node to only consider the first truncation old nodes (according to the current ordering used internally) (Currently not implemented, argument doesn’t do anything but it’s not needed).\n\nFor each candidate edge \\((u, v)\\) (new node \\(u\\) to old node \\(v\\)), a vector of change statistics \\[\nC_{uv}(t)\n\\] is computed from the current network using the ERNM/ERGM-style specification you provide (via formula_rhs / computeChangeStats()).\nThese statistics are mapped to a baseline attachment probability using a logistic link: \\[\np^{(0)}_{uv}(t) = \\text{logit}^{-1}\\!\\left(C_{uv}(t)^\\top \\theta\\right).\n\\]\nFinally, an aging / recency adjustment is applied to down-weight older target nodes: \\[\np_{uv}(t) = p^{(0)}_{uv}(t)\\,\\exp\\!\\big(-\\beta_{\\text{edges}}\\cdot \\text{age}_v(t)\\big),\n\\] where \\(\\text{age}_v(t) = t - t_v\\) and \\(t_v\\) is the stored node arrival time. (In the implementation, probabilities are also clipped away from 0/1 for numerical stability.)\nUnder this mark model, each candidate edge is treated as an independent Bernoulli trial, so the probability of observing a particular set of edges at time \\(t\\) is a Bernoulli-product over the candidate set.\n\n\n\nData Expectations\nTo use the CS kernel, your events must match the “new nodes arrive + may connect to existing nodes” pattern:\n\nEach event time can introduce zero or more new nodes.\nAny edges observed at that event must be between a new node and an old node.\n\nImportantly (based on the current PMF / validators):\n\nOld–old edges are not allowed (edges between two already-existing nodes).\nNew–new edges are not allowed.\nSelf-loops are not allowed.\nWithin a single event, you should not repeat the same edge (no duplicates for a given unordered pair).\n\nIf your data includes edges forming between two existing nodes (e.g., repeated interactions/transactions, new ties between old users, etc.), then the current CS mark model is not appropriate without extending the mark space / PMF.\n\n\n\nSimulation\nSimulate CS data.\n\n\n\n\nset.seed(1)\n\ntime &lt;- 15\nparams_cs_true &lt;- list(\n  mu = 5,\n  K = 0.5,\n  beta = 2,\n  beta_edges = 0.5,\n  node_lambda = 4,\n  # CS_edges = -2.5,\n  # CS_triangles = 0.001,\n  CS_star.2 = -1,\n  CS_star.3 = -3\n)\n\nsim &lt;- sim_hawkesNet(\n  params = params_cs_true,\n  T_end = time,\n  mark_type = \"cs\",\n  # formula_rhs = \"edges + triangles() \n  # + star(c(2,3))\",\n  formula_rhs = \"star(c(2,3))\"\n)\n\n[1] \"Simulation took 0.99 seconds\"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nModel fitting\nFit CS data.\n\n\n\n\n\n\nTip\n\n\n\nMake sure to specify the transformation setting for the CS parameters.\nIdeally will default to correct value, but want to discuss how we are implementing the arguments, because lowk I like the old way of passing CS_params better.\n\n\n\nparams_cs_init &lt;- list(\n  mu = 3,\n  K = 1,\n  beta = 1,\n  beta_edges = 1,\n  node_lambda = 5,\n  # CS_edges = -2.5,\n  # CS_triangles = 0.001,\n  CS_star.2 = 0,\n  CS_star.3 = 0\n)\n\nfit &lt;- fit_hawkesNet(\n      ev = sim$ev,\n      params_init = params_cs_init,\n      mark_type = \"cs\",\n      transform = list(CS_star.2 = \"none\", CS_star.3 = \"none\"),\n      formula_rhs = \"star(c(2,3))\"\n    )\n\n[1] \"Fitting took 9.31 seconds\"\n\n\nParameter values on the fitted scale:\n\nunlist(fit$par)\n\n         mu           K        beta  beta_edges node_lambda   CS_star.2 \n  4.6384795   0.7236149   3.3119207   0.4046910   4.1888536  -0.9812649 \n  CS_star.3 \n -3.1691266 \n\n\nNotttt baddddd.\nParameter values on the transformed scale:\n\nfit$fit$par\n\n         mu           K        beta  beta_edges node_lambda   CS_star.2 \n  1.5343866  -0.3234959   1.1975283  -0.9046315   1.4324271  -0.9812649 \n  CS_star.3 \n -3.1691266",
     "crumbs": [
       "Kernels & Examples",
       "<span class='chapter-number'>7</span>  <span class='chapter-title'>CS Kernel</span>"
@@ -225,6 +225,83 @@
     "crumbs": [
       "Sim studies",
       "<span class='chapter-number'>12</span>  <span class='chapter-title'>Crime data</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html",
+    "href": "ba_study.html",
+    "title": "14  BA Sim Study",
+    "section": "",
+    "text": "14.1 Quick summary\nThis page summarizes the BA kernel simulation study results saved as per-replicate .rds files under:\nEach replicate contains truth, estimates, counts, and runtimes (see str(ba_rep_003)).\ntab &lt;- summary_table(df)\ntab\n\n# A tibble: 6 × 7\n  T_end     n keep_rate n_events_mean n_events_sd sim_s_mean fit_s_mean\n  &lt;dbl&gt; &lt;int&gt;     &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;\n1     5   350     0.954          81.5        14.6      0.297       1.46\n2    10   350     0.963         180.         24.3      0.530       2.30\n3    25   350     0.994         476.         41.2      1.88        6.46\n4    50   350     0.997         975.         62.8      5.86       16.2 \n5    75   350     0.997        1476.         79.5     12.4        35.3 \n6   100   350     0.997        1973.         94.2     19.4        50.7",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html#cap-exceeded-replicates",
+    "href": "ba_study.html#cap-exceeded-replicates",
+    "title": "14  BA Sim Study",
+    "section": "14.2 Cap-Exceeded Replicates",
+    "text": "14.2 Cap-Exceeded Replicates\nThere were a few replicates which “exploded”, and ended up with unrealistic estimates of K & beta. I decided to just filter these out, as it was making the plots unreadable.\nChose to filter out any \\(K &gt; 20\\), \\(\\beta &gt; 20\\) (arbitrarily).\n\ndf %&gt;%\n  summarise(\n    n_total = n(),\n    n_keep  = sum(keep, na.rm = TRUE),\n    n_dropped_caps = sum(drop_reason == \"cap_exceeded\", na.rm = TRUE)\n  )\n\n# A tibble: 1 × 3\n  n_total n_keep n_dropped_caps\n    &lt;int&gt;  &lt;int&gt;          &lt;int&gt;\n1    2100   2066             34\n\ndf_keep &lt;- df %&gt;% filter(keep)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html#parameter-estimates-vs-t_end",
+    "href": "ba_study.html#parameter-estimates-vs-t_end",
+    "title": "14  BA Sim Study",
+    "section": "14.3 Parameter estimates vs T_end",
+    "text": "14.3 Parameter estimates vs T_end\nDashed line = true value.\n\nplot_estimates_vs_T(df, keep_only = TRUE)\n\n\n\n\n\n\n\n\nLog scale:\n\nplot_estimates_vs_T(df, keep_only = TRUE, log_scale = TRUE)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html#counts-vs-t_end",
+    "href": "ba_study.html#counts-vs-t_end",
+    "title": "14  BA Sim Study",
+    "section": "14.4 Counts vs T_end",
+    "text": "14.4 Counts vs T_end\n\nplot_counts_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html#keep-rate-vs-t_end",
+    "href": "ba_study.html#keep-rate-vs-t_end",
+    "title": "14  BA Sim Study",
+    "section": "14.5 Keep rate vs T_end",
+    "text": "14.5 Keep rate vs T_end\n\nplot_keep_rate_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html#rmse-decay-vs-t_end",
+    "href": "ba_study.html#rmse-decay-vs-t_end",
+    "title": "14  BA Sim Study",
+    "section": "14.6 RMSE decay vs T_end",
+    "text": "14.6 RMSE decay vs T_end\n\nplot_rmse_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_study.html#runtime-vs-t_end",
+    "href": "ba_study.html#runtime-vs-t_end",
+    "title": "14  BA Sim Study",
+    "section": "14.7 Runtime vs T_end",
+    "text": "14.7 Runtime vs T_end\n\nplot_runtime_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
     ]
   }
 ]

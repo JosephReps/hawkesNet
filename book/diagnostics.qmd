@@ -44,10 +44,6 @@ For the examples here, we will be using the fitted model from the previous secti
 plot(sim$net)
 ```
 
-:::callout-important
-These looks super ass right now, will make them look better at a later date.
-:::
-
 ## Network diagnostics
 
 You can see all the network diagnostic plots available here:

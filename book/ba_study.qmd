@@ -1,1 +1,118 @@
+{{< include _setup.qmd >}}
+
 # BA Sim Study
+
+This page summarizes the BA kernel simulation study results saved as per-replicate `.rds` files under:
+
+- `sim_study_results/ba/ba_run_<jobid>/ba_rep_###.rds`
+
+Each replicate contains truth, estimates, counts, and runtimes (see `str(ba_rep_003)`).
+
+```{r include = FALSE}
+#| message: false
+#| warning: false
+
+source("quick_start_files/ba_sim_study_helpers.R")
+
+df <- load_all_ba_runs("sim_study_results/ba")
+
+cat("T_end values:", paste(sort(unique(df$T_end)), collapse = ", "), 
+    "\n")
+```
+
+## Quick summary
+
+```{r}
+#| message: false
+#| warning: false
+
+tab <- summary_table(df)
+tab
+```
+
+## Cap-Exceeded Replicates
+
+There were a few replicates which "exploded", and ended up with unrealistic 
+estimates of `K` & `beta`. I decided to just filter these out, as it was making 
+the plots unreadable.
+
+Chose to filter out any $K > 20$, $\beta > 20$ (arbitrarily).
+
+```{r}
+df %>%
+  summarise(
+    n_total = n(),
+    n_keep  = sum(keep, na.rm = TRUE),
+    n_dropped_caps = sum(drop_reason == "cap_exceeded", na.rm = TRUE)
+  )
+
+df_keep <- df %>% filter(keep)
+```
+
+## Parameter estimates vs `T_end`
+
+Dashed line = true value.
+
+```{r}
+#| fig.width: 12
+#| fig.height: 7
+
+plot_estimates_vs_T(df, keep_only = TRUE)
+```
+
+Log scale:
+
+```{r}
+#| fig.width: 12
+#| fig.height: 7
+
+plot_estimates_vs_T(df, keep_only = TRUE, log_scale = TRUE)
+```
+
+## Counts vs `T_end`
+
+```{r}
+#| fig.width: 12
+#| fig.height: 7
+
+plot_counts_vs_T(df)
+```
+
+## Keep rate vs T_end
+
+```{r}
+#| fig.width: 9
+#| fig.height: 5
+
+plot_keep_rate_vs_T(df)
+```
+
+
+## RMSE decay vs `T_end`
+
+```{r}
+#| fig.width: 12
+#| fig.height: 6
+
+plot_rmse_vs_T(df)
+```
+
+## Runtime vs `T_end`
+
+```{r}
+#| fig.width: 12
+#| fig.height: 6
+
+plot_runtime_vs_T(df)
+```
+
+
+
+
+
+
+
+
+
+
+
