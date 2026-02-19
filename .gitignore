@@ -5,3 +5,9 @@
 *.tar.gz
 *.Rcheck/
 sim_study
+# Simulation outputs
+book/sim_study_results/
+*.rds
+
+# Quarto build artifacts
+book/_freeze/
