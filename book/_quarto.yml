@@ -8,6 +8,11 @@ book:
   subtitle: "An R package for fitting Hawkes network growth models"
   sidebar:
     logo: mini_BA_logo.png
+    tools:
+      - icon: github
+        href: https://github.com/JosephReps/hawkesNet
+      - icon: envelope
+        href: mailto:joseph.reps@gmail.com
   chapters:
     - index.qmd
     - quick_start.qmd
