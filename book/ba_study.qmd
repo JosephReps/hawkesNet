@@ -46,7 +46,8 @@ df %>%
     n_dropped_caps = sum(drop_reason == "cap_exceeded", na.rm = TRUE)
   )
 
-df_keep <- df %>% filter(keep)
+df_non_filtered <- df
+df <- df %>% filter(keep)
 ```
 
 ## Parameter estimates vs `T_end`
@@ -84,7 +85,7 @@ plot_counts_vs_T(df)
 #| fig.width: 9
 #| fig.height: 5
 
-plot_keep_rate_vs_T(df)
+plot_keep_rate_vs_T(df_non_filtered)
 ```
 
 

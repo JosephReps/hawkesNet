@@ -1,1 +1,98 @@
+{{< include _setup.qmd >}}
+
 # BA-Bipartite Sim Study
+
+```{r include = FALSE}
+#| message: false
+#| warning: false
+
+source("quick_start_files/ba_sim_study_helpers.R")
+
+# Loads the *latest* ba_bip_run_* folder by default.
+# If you want a specific run, pass run_id = "ba_bip_run_1234567"
+run <- load_all_ba_bip_runs(base_dir = "sim_study_results/ba_bip")
+df  <- run
+
+cat("Run dir:", run$run_dir, "\n")
+cat("Replicates:", nrow(df), "\n")
+```
+
+## Quick summary
+
+:::callout-note
+Accidentally messed up so the number of replicates for the last two sims are off.  
+:::
+
+```{r}
+summary_table(df)
+```
+
+## Cap-Exceeded Replicates
+
+Same as BA, filtering out explosive sims.
+
+```{r}
+df %>%
+  summarise(
+    n_total = n(),
+    n_keep  = sum(keep, na.rm = TRUE),
+    n_dropped_caps = sum(drop_reason == "cap_exceeded", na.rm = TRUE)
+  )
+
+df_non_filtered <- df
+
+
+df <- df %>% filter(keep)
+```
+
+## Parameter estimates vs `T_end`
+
+Dashed line = true value.
+
+```{r fig.height = 9, fig.width=12}
+plot_estimates_vs_T_ba_bip(df, log_scale = FALSE)
+```
+
+```{r fig.height = 9, fig.width=12}
+plot_estimates_vs_T_ba_bip(df, log_scale = TRUE)
+```
+
+<!-- ## Parameter summary (mean, true, SE) -->
+
+<!-- Computed from **keep-only** replicates. -->
+
+<!-- ```{r} -->
+<!-- param_estimate_summary(make_param_long_ba_bip(df), keep_only = TRUE) -->
+<!-- ``` -->
+
+## RMSE decay vs `T_end`
+
+```{r fig.height = 9, fig.width=12}
+plot_rmse_vs_T_ba_bip(df)
+```
+
+## Counts vs `T_end`
+
+```{r}
+#| fig.width: 12
+#| fig.height: 7
+#| 
+plot_counts_vs_T(df)
+```
+
+## Keep rate vs `T_end`
+
+```{r}
+#| fig.width: 9
+#| fig.height: 5
+#| 
+plot_keep_rate_vs_T(df_non_filtered)
+```
+
+## Runtime vs `T_end`
+
+```{r}
+#| fig.width: 12
+#| fig.height: 6
+plot_runtime_vs_T(df)
+```

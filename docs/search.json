@@ -243,7 +243,7 @@
     "href": "ba_study.html#cap-exceeded-replicates",
     "title": "14  BA Sim Study",
     "section": "14.2 Cap-Exceeded Replicates",
-    "text": "14.2 Cap-Exceeded Replicates\nThere were a few replicates which “exploded”, and ended up with unrealistic estimates of K & beta. I decided to just filter these out, as it was making the plots unreadable.\nChose to filter out any \\(K &gt; 20\\), \\(\\beta &gt; 20\\) (arbitrarily).\n\ndf %&gt;%\n  summarise(\n    n_total = n(),\n    n_keep  = sum(keep, na.rm = TRUE),\n    n_dropped_caps = sum(drop_reason == \"cap_exceeded\", na.rm = TRUE)\n  )\n\n# A tibble: 1 × 3\n  n_total n_keep n_dropped_caps\n    &lt;int&gt;  &lt;int&gt;          &lt;int&gt;\n1    2100   2066             34\n\ndf_keep &lt;- df %&gt;% filter(keep)",
+    "text": "14.2 Cap-Exceeded Replicates\nThere were a few replicates which “exploded”, and ended up with unrealistic estimates of K & beta. I decided to just filter these out, as it was making the plots unreadable.\nChose to filter out any \\(K &gt; 20\\), \\(\\beta &gt; 20\\) (arbitrarily).\n\ndf %&gt;%\n  summarise(\n    n_total = n(),\n    n_keep  = sum(keep, na.rm = TRUE),\n    n_dropped_caps = sum(drop_reason == \"cap_exceeded\", na.rm = TRUE)\n  )\n\n# A tibble: 1 × 3\n  n_total n_keep n_dropped_caps\n    &lt;int&gt;  &lt;int&gt;          &lt;int&gt;\n1    2100   2066             34\n\ndf_non_filtered &lt;- df\ndf &lt;- df %&gt;% filter(keep)",
     "crumbs": [
       "Sim studies",
       "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
@@ -276,7 +276,7 @@
     "href": "ba_study.html#keep-rate-vs-t_end",
     "title": "14  BA Sim Study",
     "section": "14.5 Keep rate vs T_end",
-    "text": "14.5 Keep rate vs T_end\n\nplot_keep_rate_vs_T(df)",
+    "text": "14.5 Keep rate vs T_end\n\nplot_keep_rate_vs_T(df_non_filtered)",
     "crumbs": [
       "Sim studies",
       "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
@@ -302,6 +302,171 @@
     "crumbs": [
       "Sim studies",
       "<span class='chapter-number'>14</span>  <span class='chapter-title'>BA Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html",
+    "href": "cs_study.html",
+    "title": "15  CS Kernel Sim Study",
+    "section": "",
+    "text": "15.1 Quick summary\nSorry, for some reason the simulation times failed to save?\nsummary_table(df)\n\n# A tibble: 6 × 7\n  T_end     n keep_rate n_events_mean n_events_sd sim_s_mean fit_s_mean\n  &lt;dbl&gt; &lt;int&gt;     &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;\n1     5   350     0.809          19.6        7.51        NaN        NaN\n2    15   350     0.937          66.8       15.4         NaN        NaN\n3    25   348     0.968         116.        20.5         NaN        NaN\n4    50   346     0.988         238.        31.2         NaN        NaN\n5    75   345     0.962         363.        38.0         NaN        NaN\n6   100   346     0.962         484.        43.6         NaN        NaN",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html#cap-exceeded-replicates",
+    "href": "cs_study.html#cap-exceeded-replicates",
+    "title": "15  CS Kernel Sim Study",
+    "section": "15.2 Cap-Exceeded Replicates",
+    "text": "15.2 Cap-Exceeded Replicates\nFiltering out explosive fits (same caps as BA on K/beta).\n\ndf %&gt;%\n  summarise(\n    n_total = n(),\n    n_keep  = sum(keep, na.rm = TRUE),\n    n_dropped_caps = sum(drop_reason == \"cap_exceeded\", na.rm = TRUE)\n  )\n\n# A tibble: 1 × 3\n  n_total n_keep n_dropped_caps\n    &lt;int&gt;  &lt;int&gt;          &lt;int&gt;\n1    2085   1955            130\n\ndf_non_filtered &lt;- df\n\ndf &lt;- df %&gt;% filter(keep)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html#parameter-estimates-vs-t_end",
+    "href": "cs_study.html#parameter-estimates-vs-t_end",
+    "title": "15  CS Kernel Sim Study",
+    "section": "15.3 Parameter estimates vs T_end",
+    "text": "15.3 Parameter estimates vs T_end\nDashed line = true value.\n\nplot_estimates_vs_T_cs(df, log_scale = FALSE)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html#rmse-decay-vs-t_end",
+    "href": "cs_study.html#rmse-decay-vs-t_end",
+    "title": "15  CS Kernel Sim Study",
+    "section": "15.4 RMSE decay vs T_end",
+    "text": "15.4 RMSE decay vs T_end\n\n\n\n\n\n\nNote\n\n\n\nLook at mu here, what is going on? Will wait to see the final version of the paper you guys publish and see. Maybe it’s just a CS thing?\n\n\n\nplot_rmse_vs_T_cs(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html#counts-vs-t_end",
+    "href": "cs_study.html#counts-vs-t_end",
+    "title": "15  CS Kernel Sim Study",
+    "section": "15.5 Counts vs T_end",
+    "text": "15.5 Counts vs T_end\n\nplot_counts_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html#keep-rate-vs-t_end",
+    "href": "cs_study.html#keep-rate-vs-t_end",
+    "title": "15  CS Kernel Sim Study",
+    "section": "15.6 Keep rate vs T_end",
+    "text": "15.6 Keep rate vs T_end\n\nplot_keep_rate_vs_T(df_non_filtered)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "cs_study.html#runtime-vs-t_end",
+    "href": "cs_study.html#runtime-vs-t_end",
+    "title": "15  CS Kernel Sim Study",
+    "section": "15.7 Runtime vs T_end",
+    "text": "15.7 Runtime vs T_end\nRuntime didn’t get saved for the CS sim studies. Was similar to BA BIP.",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>15</span>  <span class='chapter-title'>CS Kernel Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html",
+    "href": "ba_bip_study.html",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "",
+    "text": "16.1 Quick summary\nsummary_table(df)\n\n# A tibble: 6 × 7\n  T_end     n keep_rate n_events_mean n_events_sd sim_s_mean fit_s_mean\n  &lt;dbl&gt; &lt;int&gt;     &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;\n1     5   350     0.883          20.4        7.43      0.208      0.636\n2    15   350     0.974          69.0       16.0       0.445      1.78 \n3    25   350     0.98          118.        22.1       0.702      2.96 \n4    50   350     0.983         244.        30.1       2.20       6.94 \n5    75   310     0.994         368.        37.7       4.12      11.6  \n6   100   390     0.995         491.        43.1       6.66      18.5",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#quick-summary",
+    "href": "ba_bip_study.html#quick-summary",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "",
+    "text": "Note\n\n\n\nAccidentally messed up so the number of replicates for the last two sims are off.",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#cap-exceeded-replicates",
+    "href": "ba_bip_study.html#cap-exceeded-replicates",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "16.2 Cap-Exceeded Replicates",
+    "text": "16.2 Cap-Exceeded Replicates\nSame as BA, filtering out explosive sims.\n\ndf %&gt;%\n  summarise(\n    n_total = n(),\n    n_keep  = sum(keep, na.rm = TRUE),\n    n_dropped_caps = sum(drop_reason == \"cap_exceeded\", na.rm = TRUE)\n  )\n\n# A tibble: 1 × 3\n  n_total n_keep n_dropped_caps\n    &lt;int&gt;  &lt;int&gt;          &lt;int&gt;\n1    2100   2033             67\n\ndf_non_filtered &lt;- df\n\n\ndf &lt;- df %&gt;% filter(keep)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#parameter-estimates-vs-t_end",
+    "href": "ba_bip_study.html#parameter-estimates-vs-t_end",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "16.3 Parameter estimates vs T_end",
+    "text": "16.3 Parameter estimates vs T_end\nDashed line = true value.\n\nplot_estimates_vs_T_ba_bip(df, log_scale = FALSE)\n\n\n\n\n\n\n\n\n\nplot_estimates_vs_T_ba_bip(df, log_scale = TRUE)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#rmse-decay-vs-t_end",
+    "href": "ba_bip_study.html#rmse-decay-vs-t_end",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "16.4 RMSE decay vs T_end",
+    "text": "16.4 RMSE decay vs T_end\n\nplot_rmse_vs_T_ba_bip(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#counts-vs-t_end",
+    "href": "ba_bip_study.html#counts-vs-t_end",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "16.5 Counts vs T_end",
+    "text": "16.5 Counts vs T_end\n\nplot_counts_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#keep-rate-vs-t_end",
+    "href": "ba_bip_study.html#keep-rate-vs-t_end",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "16.6 Keep rate vs T_end",
+    "text": "16.6 Keep rate vs T_end\n\nplot_keep_rate_vs_T(df_non_filtered)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
+    ]
+  },
+  {
+    "objectID": "ba_bip_study.html#runtime-vs-t_end",
+    "href": "ba_bip_study.html#runtime-vs-t_end",
+    "title": "16  BA-Bipartite Sim Study",
+    "section": "16.7 Runtime vs T_end",
+    "text": "16.7 Runtime vs T_end\n\nplot_runtime_vs_T(df)",
+    "crumbs": [
+      "Sim studies",
+      "<span class='chapter-number'>16</span>  <span class='chapter-title'>BA-Bipartite Sim Study</span>"
     ]
   }
 ]

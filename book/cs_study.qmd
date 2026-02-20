@@ -1,1 +1,90 @@
-# CS Sim Study
+{{< include _setup.qmd >}}
+
+# CS Kernel Sim Study
+
+```{r include = FALSE}
+#| message: false
+#| warning: false
+
+source("quick_start_files/ba_sim_study_helpers.R")
+
+# Loads the *latest* cs_run_* folder by default.
+# If you want a specific run, pass run_id = "cs_run_1234567"
+run <- load_all_cs_runs(base_dir = "sim_study_results/cs")
+df  <- run
+
+cat("Run dir:", run$run_dir, "\n")
+cat("Replicates:", nrow(df), "\n")
+```
+
+## Quick summary
+
+Sorry, for some reason the simulation times failed to save?
+
+```{r}
+summary_table(df)
+```
+
+## Cap-Exceeded Replicates
+
+Filtering out explosive fits (same caps as BA on K/beta).
+
+```{r}
+df %>%
+  summarise(
+    n_total = n(),
+    n_keep  = sum(keep, na.rm = TRUE),
+    n_dropped_caps = sum(drop_reason == "cap_exceeded", na.rm = TRUE)
+  )
+
+df_non_filtered <- df
+
+df <- df %>% filter(keep)
+```
+
+<!-- ## Parameter summary (mean, true, SE) -->
+
+<!-- Computed from **keep-only** replicates. -->
+
+<!-- ```{r} -->
+<!-- param_estimate_summary(make_param_long_cs(df), keep_only = TRUE) -->
+<!-- ``` -->
+
+## Parameter estimates vs `T_end`
+
+Dashed line = true value.
+
+```{r fig.height = 14, fig.width=12}
+plot_estimates_vs_T_cs(df, log_scale = FALSE)
+```
+
+## RMSE decay vs `T_end`
+
+:::callout-note
+Look at `mu` here, what is going on? Will wait to see the final version of the 
+paper you guys publish and see. Maybe it's just a CS thing?
+:::
+
+```{r fig.height = 14, fig.width=12}
+plot_rmse_vs_T_cs(df)
+```
+
+## Counts vs `T_end`
+
+```{r}
+#| fig.width: 12
+#| fig.height: 7
+plot_counts_vs_T(df)
+```
+
+## Keep rate vs `T_end`
+
+```{r}
+#| fig.width: 9
+#| fig.height: 5
+plot_keep_rate_vs_T(df_non_filtered)
+```
+
+## Runtime vs `T_end`
+
+Runtime didn't get saved for the CS sim studies. Was similar to BA BIP.

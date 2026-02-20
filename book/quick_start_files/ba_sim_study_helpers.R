@@ -12,6 +12,36 @@ suppressPackageStartupMessages({
 `%||%` <- function(x, y) if (is.null(x) || length(x) == 0 || all(is.na(x))) y else x
 as_num <- function(x) suppressWarnings(as.numeric(x))
 
+# -------------------------
+# Shared helpers
+# -------------------------
+
+# Generic parameter summary table
+# Returns mean(estimate), sd(estimate), se(estimate) and true value
+param_estimate_summary <- function(long_df, keep_only = TRUE) {
+  stopifnot(all(c("param", "estimate", "true", "T_end") %in% names(long_df)))
+
+  x <- long_df
+  if (keep_only && ("keep" %in% names(x))) x <- x %>% filter(keep)
+
+  x %>%
+    filter(!is.na(estimate), !is.na(true), !is.na(T_end)) %>%
+    group_by(T_end, param) %>%
+    summarise(
+      n = dplyr::n(),
+      true = dplyr::first(true),
+      mean = mean(estimate),
+      sd = sd(estimate),
+      se = sd / sqrt(n),
+      .groups = "drop"
+    ) %>%
+    arrange(T_end, param)
+}
+
+# -------------------------
+# BA helpers
+# -------------------------
+
 read_ba_rep <- function(file) {
   obj <- tryCatch(readRDS(file), error = function(e) NULL)
   if (is.null(obj) || !is.list(obj)) return(NULL)
@@ -59,17 +89,9 @@ read_ba_rep <- function(file) {
   ) %>%
     mutate(
       ok_status = is.na(status) | status %in% c("ok", "OK", "success"),
-      keep = ok_status & converged & !is.na(convergence) & convergence == 0
-    ) %>%
-    mutate(
-      ok_status = is.na(status) | status %in% c("ok", "OK", "success"),
       ok_conv   = converged & !is.na(convergence) & convergence == 0,
-
-      # cap filter (your request)
       ok_caps   = (is.na(K_hat) | K_hat <= 20) & (is.na(beta_hat) | beta_hat <= 20),
-
       keep = ok_status & ok_conv & ok_caps,
-
       drop_reason = case_when(
         !(ok_status) ~ "bad_status",
         !(ok_conv)   ~ "not_converged",
@@ -109,7 +131,24 @@ load_ba_run <- function(base_dir = "sim_study_results/ba", run_id = NULL) {
   list(run_dir = run_dir, df = df)
 }
 
-make_param_long <- function(df) {
+load_all_ba_runs <- function(base_dir = "sim_study_results/ba") {
+  runs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
+  runs <- runs[grepl("ba_run_", basename(runs))]
+
+  if (length(runs) == 0) stop("No ba_run_* folders found in: ", base_dir)
+
+  df <- purrr::map_dfr(runs, function(run_dir) {
+    files <- list.files(run_dir, pattern = "^ba_rep_\\d+\\.rds$", full.names = TRUE)
+    if (length(files) == 0) return(NULL)
+    purrr::map_dfr(files, read_ba_rep)
+  })
+
+  df %>%
+    filter(!is.na(T_end)) %>%
+    mutate(T_end = as.numeric(T_end))
+}
+
+make_param_long_ba <- function(df) {
   df %>%
     select(run_id, rep_id, T_end, keep,
            mu_hat, K_hat, beta_hat, beta_edges_hat,
@@ -128,19 +167,385 @@ make_param_long <- function(df) {
     )
 }
 
-plot_estimates_vs_T <- function(df, keep_only = FALSE, log_scale = FALSE) {
+# Backwards compatible name used in older QMDs
+make_param_long <- make_param_long_ba
 
-  long <- make_param_long(df) %>%
+plot_estimates_vs_T <- function(df, keep_only = FALSE, log_scale = FALSE) {
+  long <- make_param_long_ba(df) %>%
     filter(!is.na(estimate), !is.na(T_end))
 
-  if (keep_only) {
-    long <- long %>% filter(keep)
+  if (keep_only) long <- long %>% filter(keep)
+
+  if (log_scale) long <- long %>% filter(estimate > 0, true > 0)
+
+  p <- ggplot(long, aes(x = T_end_f, y = estimate)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_jitter(aes(alpha = keep), width = 0.2, size = 1) +
+    geom_hline(aes(yintercept = true), linetype = "dashed") +
+    facet_wrap(~param, scales = "free_y") +
+    labs(
+      title = if (log_scale) "Parameter estimates vs T_end (log scale)" else "Parameter estimates vs T_end",
+      subtitle = if (keep_only) "Keep-only (converged & ok)" else "All runs (alpha shows keep)",
+      x = "T_end",
+      y = if (log_scale) "Estimate (log scale)" else "Estimate",
+      alpha = "keep"
+    ) +
+    theme_minimal()
+
+  if (log_scale) p <- p + scale_y_log10()
+  p
+}
+
+plot_rmse_vs_T <- function(df) {
+  long <- make_param_long_ba(df) %>%
+    filter(keep, !is.na(estimate), !is.na(true), !is.na(T_end))
+
+  sumdf <- long %>%
+    group_by(T_end, param) %>%
+    summarise(
+      bias = mean(estimate - true),
+      rmse = sqrt(mean((estimate - true)^2)),
+      sd = sd(estimate),
+      .groups = "drop"
+    )
+
+  ggplot(sumdf, aes(x = T_end, y = rmse)) +
+    geom_line() +
+    geom_point() +
+    facet_wrap(~param, scales = "free_y") +
+    labs(title = "RMSE vs T_end (keep-only)", x = "T_end", y = "RMSE") +
+    theme_minimal()
+}
+
+# -------------------------
+# BA_BIP helpers (bipartite BA)
+# -------------------------
+
+read_ba_bip_rep <- function(file) {
+  obj <- tryCatch(readRDS(file), error = function(e) NULL)
+  if (is.null(obj) || !is.list(obj)) return(NULL)
+
+  params_true <- obj$params_true %||% list()
+
+  tibble(
+    file = file,
+    run_id = basename(dirname(file)),
+    rep_id = as.integer(obj$rep_id %||% NA),
+    seed = as_num(obj$seed %||% NA),
+    T_end = as_num(obj$T_end %||% NA),
+    status = as.character(obj$status %||% NA),
+
+    sim_seconds = as_num(obj$sim_seconds %||% NA),
+    fit_seconds = as_num(obj$fit_seconds %||% NA),
+
+    n_events = as.integer(obj$n_events %||% NA),
+    n_nodes  = as.integer(obj$n_nodes %||% NA),
+    n_edges  = as.integer(obj$n_edges %||% NA),
+
+    mean_degree = as_num(obj$mean_degree %||% NA),
+    max_degree  = as_num(obj$max_degree %||% NA),
+    density     = as_num(obj$density %||% NA),
+
+    dt_mean   = as_num(obj$dt_mean %||% NA),
+    dt_median = as_num(obj$dt_median %||% NA),
+    lambda_mean = as_num(obj$lambda_mean %||% NA),
+    lambda_max  = as_num(obj$lambda_max %||% NA),
+
+    convergence = as.integer(obj$convergence %||% NA),
+    converged   = isTRUE(obj$converged %||% FALSE),
+    loglik      = as_num(obj$loglik %||% NA),
+    fit_message = as.character(obj$fit_message %||% NA),
+
+    mu_true         = as_num(params_true$mu %||% NA),
+    K_true          = as_num(params_true$K %||% NA),
+    beta_true       = as_num(params_true$beta %||% NA),
+    beta_edges_true = as_num(params_true$beta_edges %||% NA),
+    lambda_new_true = as_num(params_true$lambda_new %||% NA),
+
+    mu_hat         = as_num(obj$mu_hat %||% NA),
+    K_hat          = as_num(obj$K_hat %||% NA),
+    beta_hat       = as_num(obj$beta_hat %||% NA),
+    beta_edges_hat = as_num(obj$beta_edges_hat %||% NA),
+    lambda_new_hat = as_num(obj$lambda_new_hat %||% NA)
+  ) %>%
+    mutate(
+      ok_status = is.na(status) | status %in% c("ok", "OK", "success"),
+      ok_conv   = converged & !is.na(convergence) & convergence == 0,
+      ok_caps   = (is.na(K_hat) | K_hat <= 20) & (is.na(beta_hat) | beta_hat <= 20),
+      keep = ok_status & ok_conv & ok_caps,
+      drop_reason = case_when(
+        !(ok_status) ~ "bad_status",
+        !(ok_conv)   ~ "not_converged",
+        !(ok_caps)   ~ "cap_exceeded",
+        TRUE         ~ NA_character_
+      )
+    )
+}
+
+find_ba_bip_run_dir <- function(base_dir = "sim_study_results/ba_bip", run_id = NULL) {
+  if (!dir.exists(base_dir)) stop("Directory not found: ", base_dir)
+
+  if (!is.null(run_id)) {
+    cand <- file.path(base_dir, run_id)
+    if (!dir.exists(cand)) stop("Run dir not found: ", cand)
+    return(cand)
   }
 
-  # If using log scale, remove non-positive estimates / truths
+  runs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
+  runs <- runs[grepl("bip_run_", basename(runs))]
+  if (length(runs) == 0) stop("No bip_run_* folders found under: ", base_dir)
+
+  info <- file.info(runs)
+  runs[which.max(info$mtime)]
+}
+
+load_ba_bip_run <- function(base_dir = "sim_study_results/ba_bip", run_id = NULL) {
+  run_dir <- find_ba_bip_run_dir(base_dir, run_id)
+  files <- list.files(run_dir, pattern = "^ba_bip_rep_\\d+\\.rds$", full.names = TRUE)
+  if (length(files) == 0) stop("No ba_bip_rep_###.rds found in: ", run_dir)
+
+  df <- map_dfr(files, read_ba_bip_rep) %>%
+    filter(!is.na(T_end)) %>%
+    mutate(T_end = as.numeric(T_end))
+
+  list(run_dir = run_dir, df = df)
+}
+
+load_all_ba_bip_runs <- function(base_dir = "sim_study_results/ba_bip") {
+  runs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
+  runs <- runs[grepl("bip_run_", basename(runs))]
+
+  if (length(runs) == 0) stop("No bip_run_* folders found in: ", base_dir)
+
+  df <- purrr::map_dfr(runs, function(run_dir) {
+    files <- list.files(run_dir, pattern = "^ba_bip_rep_\\d+\\.rds$", full.names = TRUE)
+    if (length(files) == 0) return(NULL)
+    purrr::map_dfr(files, read_ba_bip_rep)
+  })
+
+  df %>%
+    filter(!is.na(T_end)) %>%
+    mutate(T_end = as.numeric(T_end))
+}
+
+make_param_long_ba_bip <- function(df) {
+  df %>%
+    select(run_id, rep_id, T_end, keep,
+           mu_hat, K_hat, beta_hat, beta_edges_hat, lambda_new_hat,
+           mu_true, K_true, beta_true, beta_edges_true, lambda_new_true) %>%
+    pivot_longer(cols = ends_with("_hat"), names_to = "param_hat", values_to = "estimate") %>%
+    mutate(
+      param = str_remove(param_hat, "_hat$"),
+      true = case_when(
+        param == "mu" ~ mu_true,
+        param == "K" ~ K_true,
+        param == "beta" ~ beta_true,
+        param == "beta_edges" ~ beta_edges_true,
+        param == "lambda_new" ~ lambda_new_true,
+        TRUE ~ NA_real_
+      ),
+      T_end_f = factor(T_end, levels = sort(unique(T_end)))
+    )
+}
+
+plot_estimates_vs_T_ba_bip <- function(df, keep_only = FALSE, log_scale = FALSE) {
+  long <- make_param_long_ba_bip(df) %>%
+    filter(!is.na(estimate), !is.na(T_end))
+
+  if (keep_only) long <- long %>% filter(keep)
+  if (log_scale) long <- long %>% filter(estimate > 0, true > 0)
+
+  p <- ggplot(long, aes(x = T_end_f, y = estimate)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_jitter(aes(alpha = keep), width = 0.2, size = 1) +
+    geom_hline(aes(yintercept = true), linetype = "dashed") +
+    facet_wrap(~param, scales = "free_y") +
+    labs(
+      title = if (log_scale) "BA_BIP: Parameter estimates vs T_end (log scale)" else "BA_BIP: Parameter estimates vs T_end",
+      subtitle = if (keep_only) "Keep-only (converged & ok)" else "All runs (alpha shows keep)",
+      x = "T_end",
+      y = if (log_scale) "Estimate (log scale)" else "Estimate",
+      alpha = "keep"
+    ) +
+    theme_minimal()
+
+  if (log_scale) p <- p + scale_y_log10()
+  p
+}
+
+plot_rmse_vs_T_ba_bip <- function(df) {
+  long <- make_param_long_ba_bip(df) %>%
+    filter(keep, !is.na(estimate), !is.na(true), !is.na(T_end))
+
+  sumdf <- long %>%
+    group_by(T_end, param) %>%
+    summarise(
+      bias = mean(estimate - true),
+      rmse = sqrt(mean((estimate - true)^2)),
+      sd = sd(estimate),
+      .groups = "drop"
+    )
+
+  ggplot(sumdf, aes(x = T_end, y = rmse)) +
+    geom_line() +
+    geom_point() +
+    facet_wrap(~param, scales = "free_y") +
+    labs(title = "BA_BIP: RMSE vs T_end (keep-only)", x = "T_end", y = "RMSE") +
+    theme_minimal()
+}
+
+# -------------------------
+# CS helpers
+# -------------------------
+
+read_cs_rep <- function(file) {
+  obj <- tryCatch(readRDS(file), error = function(e) NULL)
+  if (is.null(obj) || !is.list(obj)) return(NULL)
+
+  params_true <- obj$params_true %||% list()
+
+  tibble(
+    file = file,
+    run_id = basename(dirname(file)),
+    rep_id = as.integer(obj$rep_id %||% NA),
+    seed = as_num(obj$seed %||% NA),
+    T_end = as_num(obj$T_end %||% NA),
+    status = as.character(obj$status %||% NA),
+
+    sim_seconds = as_num(obj$sim_seconds %||% NA),
+    fit_seconds = as_num(obj$fit_seconds %||% NA),
+
+    n_events = as.integer(obj$n_events %||% NA),
+    n_nodes  = as.integer(obj$n_nodes %||% NA),
+    n_edges  = as.integer(obj$n_edges %||% NA),
+
+    mean_degree = as_num(obj$mean_degree %||% NA),
+    max_degree  = as_num(obj$max_degree %||% NA),
+    density     = as_num(obj$density %||% NA),
+
+    dt_mean   = as_num(obj$dt_mean %||% NA),
+    dt_median = as_num(obj$dt_median %||% NA),
+    lambda_mean = as_num(obj$lambda_mean %||% NA),
+    lambda_max  = as_num(obj$lambda_max %||% NA),
+
+    convergence = as.integer(obj$convergence %||% NA),
+    converged   = isTRUE(obj$converged %||% FALSE),
+    loglik      = as_num(obj$loglik %||% NA),
+    fit_message = as.character(obj$fit_message %||% NA),
+
+    mu_true         = as_num(params_true$mu %||% NA),
+    K_true          = as_num(params_true$K %||% NA),
+    beta_true       = as_num(params_true$beta %||% NA),
+    beta_edges_true = as_num(params_true$beta_edges %||% NA),
+    node_lambda_true = as_num(params_true$node_lambda %||% NA),
+    CS_edges_true    = as_num(params_true$CS_edges %||% NA),
+    CS_star.2_true   = as_num(params_true$CS_star.2 %||% NA),
+    CS_star.3_true   = as_num(params_true$CS_star.3 %||% NA),
+
+    mu_hat         = as_num(obj$mu_hat %||% NA),
+    K_hat          = as_num(obj$K_hat %||% NA),
+    beta_hat       = as_num(obj$beta_hat %||% NA),
+    beta_edges_hat = as_num(obj$beta_edges_hat %||% NA),
+    node_lambda_hat = as_num(obj$node_lambda_hat %||% NA),
+    CS_edges_hat    = as_num(obj$CS_edges_hat %||% NA),
+    CS_star.2_hat   = as_num(obj$CS_star.2_hat %||% NA),
+    CS_star.3_hat   = as_num(obj$CS_star.3_hat %||% NA)
+  ) %>%
+    mutate(
+      ok_status = is.na(status) | status %in% c("ok", "OK", "success"),
+      ok_conv   = converged & !is.na(convergence) & convergence == 0,
+      # keep the same caps as BA for the Hawkes params; CS params can be negative so no caps there
+      ok_caps   = (is.na(K_hat) | K_hat <= 20) & (is.na(beta_hat) | beta_hat <= 20),
+      keep = ok_status & ok_conv & ok_caps,
+      drop_reason = case_when(
+        !(ok_status) ~ "bad_status",
+        !(ok_conv)   ~ "not_converged",
+        !(ok_caps)   ~ "cap_exceeded",
+        TRUE         ~ NA_character_
+      )
+    )
+}
+
+find_cs_run_dir <- function(base_dir = "sim_study_results/cs", run_id = NULL) {
+  if (!dir.exists(base_dir)) stop("Directory not found: ", base_dir)
+
+  if (!is.null(run_id)) {
+    cand <- file.path(base_dir, run_id)
+    if (!dir.exists(cand)) stop("Run dir not found: ", cand)
+    return(cand)
+  }
+
+  runs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
+  runs <- runs[grepl("cs_run_", basename(runs))]
+  if (length(runs) == 0) stop("No cs_run_* folders found under: ", base_dir)
+
+  info <- file.info(runs)
+  runs[which.max(info$mtime)]
+}
+
+load_cs_run <- function(base_dir = "sim_study_results/cs", run_id = NULL) {
+  run_dir <- find_cs_run_dir(base_dir, run_id)
+  files <- list.files(run_dir, pattern = "^cs_rep_\\d+\\.rds$", full.names = TRUE)
+  if (length(files) == 0) stop("No cs_rep_###.rds found in: ", run_dir)
+
+  df <- map_dfr(files, read_cs_rep) %>%
+    filter(!is.na(T_end)) %>%
+    mutate(T_end = as.numeric(T_end))
+
+  list(run_dir = run_dir, df = df)
+}
+
+load_all_cs_runs <- function(base_dir = "sim_study_results/cs") {
+  runs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
+  runs <- runs[grepl("cs_run_", basename(runs))]
+
+  if (length(runs) == 0) stop("No cs_run_* folders found in: ", base_dir)
+
+  df <- purrr::map_dfr(runs, function(run_dir) {
+    files <- list.files(run_dir, pattern = "^cs_rep_\\d+\\.rds$", full.names = TRUE)
+    if (length(files) == 0) return(NULL)
+    purrr::map_dfr(files, read_cs_rep)
+  })
+
+  df %>%
+    filter(!is.na(T_end)) %>%
+    mutate(T_end = as.numeric(T_end))
+}
+
+make_param_long_cs <- function(df) {
+  df %>%
+    select(run_id, rep_id, T_end, keep,
+           mu_hat, K_hat, beta_hat, beta_edges_hat,
+           node_lambda_hat, CS_edges_hat, CS_star.2_hat, CS_star.3_hat,
+           mu_true, K_true, beta_true, beta_edges_true,
+           node_lambda_true, CS_edges_true, CS_star.2_true, CS_star.3_true) %>%
+    pivot_longer(cols = ends_with("_hat"), names_to = "param_hat", values_to = "estimate") %>%
+    mutate(
+      param = str_remove(param_hat, "_hat$"),
+      true = case_when(
+        param == "mu" ~ mu_true,
+        param == "K" ~ K_true,
+        param == "beta" ~ beta_true,
+        param == "beta_edges" ~ beta_edges_true,
+        param == "node_lambda" ~ node_lambda_true,
+        param == "CS_edges" ~ CS_edges_true,
+        param == "CS_star.2" ~ CS_star.2_true,
+        param == "CS_star.3" ~ CS_star.3_true,
+        TRUE ~ NA_real_
+      ),
+      T_end_f = factor(T_end, levels = sort(unique(T_end)))
+    )
+}
+
+plot_estimates_vs_T_cs <- function(df, keep_only = FALSE, log_scale = FALSE) {
+  long <- make_param_long_cs(df) %>%
+    filter(!is.na(estimate), !is.na(T_end))
+
+  if (keep_only) long <- long %>% filter(keep)
+
   if (log_scale) {
-    long <- long %>%
-      filter(estimate > 0, true > 0)
+    # only log-scale positive parameters; filter within facets would be nicer, but keep simple
+    long <- long %>% filter(estimate > 0, true > 0)
   }
 
   p <- ggplot(long, aes(x = T_end_f, y = estimate)) +
@@ -149,27 +554,42 @@ plot_estimates_vs_T <- function(df, keep_only = FALSE, log_scale = FALSE) {
     geom_hline(aes(yintercept = true), linetype = "dashed") +
     facet_wrap(~param, scales = "free_y") +
     labs(
-      title = if (log_scale)
-        "Parameter estimates vs T_end (log scale)"
-      else
-        "Parameter estimates vs T_end",
-      subtitle = if (keep_only)
-        "Keep-only (converged & ok)"
-      else
-        "All runs (alpha shows keep)",
+      title = if (log_scale) "CS: Parameter estimates vs T_end (log scale)" else "CS: Parameter estimates vs T_end",
+      subtitle = if (keep_only) "Keep-only (converged & ok)" else "All runs (alpha shows keep)",
       x = "T_end",
       y = if (log_scale) "Estimate (log scale)" else "Estimate",
       alpha = "keep"
     ) +
     theme_minimal()
 
-  if (log_scale) {
-    p <- p + scale_y_log10()
-  }
-
-  return(p)
+  if (log_scale) p <- p + scale_y_log10()
+  p
 }
 
+plot_rmse_vs_T_cs <- function(df) {
+  long <- make_param_long_cs(df) %>%
+    filter(keep, !is.na(estimate), !is.na(true), !is.na(T_end))
+
+  sumdf <- long %>%
+    group_by(T_end, param) %>%
+    summarise(
+      bias = mean(estimate - true),
+      rmse = sqrt(mean((estimate - true)^2)),
+      sd = sd(estimate),
+      .groups = "drop"
+    )
+
+  ggplot(sumdf, aes(x = T_end, y = rmse)) +
+    geom_line() +
+    geom_point() +
+    facet_wrap(~param, scales = "free_y") +
+    labs(title = "CS: RMSE vs T_end (keep-only)", x = "T_end", y = "RMSE") +
+    theme_minimal()
+}
+
+# -------------------------
+# Shared plots/tables across kernels
+# -------------------------
 
 plot_counts_vs_T <- function(df) {
   long <- df %>%
@@ -205,27 +625,6 @@ plot_keep_rate_vs_T <- function(df) {
     theme_minimal()
 }
 
-plot_rmse_vs_T <- function(df) {
-  long <- make_param_long(df) %>%
-    filter(keep, !is.na(estimate), !is.na(true), !is.na(T_end))
-
-  sumdf <- long %>%
-    group_by(T_end, param) %>%
-    summarise(
-      bias = mean(estimate - true),
-      rmse = sqrt(mean((estimate - true)^2)),
-      sd = sd(estimate),
-      .groups = "drop"
-    )
-
-  ggplot(sumdf, aes(x = T_end, y = rmse)) +
-    geom_line() +
-    geom_point() +
-    facet_wrap(~param, scales = "free_y") +
-    labs(title = "RMSE vs T_end (keep-only)", x = "T_end", y = "RMSE") +
-    theme_minimal()
-}
-
 plot_runtime_vs_T <- function(df) {
   long <- df %>%
     mutate(total_seconds = sim_seconds + fit_seconds) %>%
@@ -243,7 +642,6 @@ plot_runtime_vs_T <- function(df) {
 }
 
 summary_table <- function(df) {
-  # nice little table for the book
   df %>%
     group_by(T_end) %>%
     summarise(
@@ -257,27 +655,3 @@ summary_table <- function(df) {
     ) %>%
     arrange(T_end)
 }
-
-load_all_ba_runs <- function(base_dir = "sim_study_results/ba") {
-
-  runs <- list.dirs(base_dir, full.names = TRUE, recursive = FALSE)
-  runs <- runs[grepl("ba_run_", basename(runs))]
-
-  if (length(runs) == 0) stop("No ba_run_* folders found in: ", base_dir)
-
-  cat("Found", length(runs), "runs:\n")
-  print(basename(runs))
-
-  df <- purrr::map_dfr(runs, function(run_dir) {
-    files <- list.files(run_dir, pattern = "^ba_rep_\\d+\\.rds$", full.names = TRUE)
-    if (length(files) == 0) return(NULL)
-    purrr::map_dfr(files, read_ba_rep)
-  })
-
-  df <- df %>%
-    filter(!is.na(T_end)) %>%
-    mutate(T_end = as.numeric(T_end))
-
-  return(df)
-}
-

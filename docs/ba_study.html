@@ -321,7 +321,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cs_study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">CS Sim Study</span></span></a>
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">CS Kernel Sim Study</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -430,7 +430,8 @@ window.Quarto = {
     &lt;int&gt;  &lt;int&gt;          &lt;int&gt;
 1    2100   2066             34</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df_keep <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(keep)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df_non_filtered <span class="ot">&lt;-</span> df</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(keep)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="parameter-estimates-vs-t_end" class="level2" data-number="14.3">
@@ -474,7 +475,7 @@ window.Quarto = {
 <section id="keep-rate-vs-t_end" class="level2" data-number="14.5">
 <h2 data-number="14.5" class="anchored" data-anchor-id="keep-rate-vs-t_end"><span class="header-section-number">14.5</span> Keep rate vs T_end</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_keep_rate_vs_T</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_keep_rate_vs_T</span>(df_non_filtered)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -920,8 +921,8 @@ window.Quarto = {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./cs_study.html" class="pagination-link" aria-label="CS Sim Study">
-        <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">CS Sim Study</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./cs_study.html" class="pagination-link" aria-label="CS Kernel Sim Study">
+        <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">CS Kernel Sim Study</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
